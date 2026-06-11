@@ -7,7 +7,8 @@ generation); the gunshot recording is a royalty-free Pixabay sample.
 ## How to run
 
 1. Open the project in Unity Hub (add `D:\Projects\fableTest`).
-2. Open `Assets/Scenes/TestRange.unity`.
+2. Open `Assets/Scenes/Title.unity` (the start screen — press Enter to play),
+   or jump straight into `Assets/Scenes/TestRange.unity`.
 3. Press Play.
 
 If the scene is ever missing or broken, regenerate it from the menu:
@@ -29,6 +30,8 @@ If the scene is ever missing or broken, regenerate it from the menu:
 | J | Toggle jump type (strafe / triple) |
 | 1 / 2 / 3 | Swap hand cannon frame |
 | Esc | Free the cursor (click to re-lock) |
+| Esc (title) / hold Esc (in game) | Exit to desktop |
+| Enter (title) | Start the game |
 
 ## What's in the slice
 

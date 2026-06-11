@@ -4,6 +4,7 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 using Density3.Core;
 using Density3.Enemies;
 using Density3.Player;
@@ -25,6 +26,7 @@ namespace Density3.EditorTools
     public static class ProjectBootstrap
     {
         private const string ScenePath = "Assets/Scenes/TestRange.unity";
+        private const string TitleScenePath = "Assets/Scenes/Title.unity";
         private const int EnemyLayer = 6; // named "Enemy" in TagManager
 
         private class Mats
@@ -49,9 +51,102 @@ namespace Density3.EditorTools
             var dregPrefab = BuildDregPrefab(mats);
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, dummyPrefab, dregPrefab, hudPrefab);
+            BuildTitleScene();
+
+            // Title first: it is the startup scene in builds.
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene(TitleScenePath, true),
+                new EditorBuildSettingsScene(ScenePath, true)
+            };
 
             AssetDatabase.SaveAssets();
-            Debug.Log("Density3: rebuilt — prefabs in Assets/Prefabs, materials in Assets/Materials, scene at " + ScenePath);
+            Debug.Log("Density3: rebuilt — prefabs in Assets/Prefabs, materials in Assets/Materials, scenes at " + TitleScenePath + " + " + ScenePath);
+        }
+
+        // ----- Title scene ----------------------------------------------------
+
+        /// <summary>
+        /// Destiny-style title screen: the rasterized title card stretched over
+        /// the whole screen, a pulsing "press Enter" prompt, and an Esc exit
+        /// hint. Esc on the title quits immediately (QuitHandler, tap mode).
+        /// </summary>
+        private static void BuildTitleScene()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var camGO = new GameObject("TitleCamera");
+            var cam = camGO.AddComponent<Camera>();
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.01f, 0.02f, 0.05f);
+            camGO.AddComponent<AudioListener>();
+
+            var canvasGO = new GameObject("TitleCanvas");
+            var canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasGO.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+
+            // Background: the title card, stretched to cover the screen.
+            var bgGO = new GameObject("Background");
+            bgGO.transform.SetParent(canvasGO.transform, false);
+            var bg = bgGO.AddComponent<RawImage>();
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/UI/TitleBackground.png");
+            if (tex != null) bg.texture = tex;
+            else
+            {
+                bg.color = new Color(0.03f, 0.05f, 0.09f);
+                Debug.LogWarning("Density3: no title art at Assets/UI/TitleBackground.png — using a flat color.");
+            }
+            var bgRect = bg.rectTransform;
+            bgRect.anchorMin = Vector2.zero;
+            bgRect.anchorMax = Vector2.one;
+            bgRect.offsetMin = Vector2.zero;
+            bgRect.offsetMax = Vector2.zero;
+
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            Text MakeTitleText(string name, string content, int size, Color color)
+            {
+                var go = new GameObject(name);
+                go.transform.SetParent(canvasGO.transform, false);
+                var t = go.AddComponent<Text>();
+                t.font = font;
+                t.fontSize = size;
+                t.text = content;
+                t.color = color;
+                t.alignment = TextAnchor.MiddleCenter;
+                t.raycastTarget = false;
+                t.horizontalOverflow = HorizontalWrapMode.Overflow;
+                t.verticalOverflow = VerticalWrapMode.Overflow;
+                return t;
+            }
+
+            var cream = new Color(0.93f, 0.88f, 0.78f);
+
+            var press = MakeTitleText("PressToPlay", "P R E S S   [ E N T E R ]   T O   P L A Y", 30, cream);
+            var pressRect = press.rectTransform;
+            pressRect.anchorMin = pressRect.anchorMax = new Vector2(0.5f, 0f);
+            pressRect.anchoredPosition = new Vector2(0f, 150f);
+            pressRect.sizeDelta = new Vector2(1200f, 44f);
+
+            var exit = MakeTitleText("ExitHint", "[Esc]  Exit to Desktop", 22, new Color(0.93f, 0.88f, 0.78f, 0.6f));
+            var exitRect = exit.rectTransform;
+            exitRect.anchorMin = exitRect.anchorMax = new Vector2(0f, 0f);
+            exitRect.pivot = new Vector2(0f, 0f);
+            exitRect.anchoredPosition = new Vector2(60f, 60f);
+            exitRect.sizeDelta = new Vector2(400f, 30f);
+            exit.alignment = TextAnchor.MiddleLeft;
+
+            var title = canvasGO.AddComponent<TitleScreen>();
+            title.gameSceneName = "TestRange";
+            title.pressToPlay = press;
+
+            var quit = canvasGO.AddComponent<QuitHandler>();
+            quit.requireHold = false; // tap to quit on the title screen
+
+            EditorSceneManager.SaveScene(scene, TitleScenePath);
         }
 
         // ----- Materials ----------------------------------------------------
@@ -802,8 +897,11 @@ namespace Density3.EditorTools
             if (gm.gunshotRecording == null)
                 gm.gunshotRecording = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/HandCannonShot.mp3");
 
+            // Global exit: hold Esc in gameplay (a tap only frees the cursor).
+            var quit = gmGO.AddComponent<QuitHandler>();
+            quit.requireHold = true;
+
             EditorSceneManager.SaveScene(scene, ScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
         }
 
         private static GameObject PlaceDummy(GameObject prefab, Transform parent, Vector3 pos)
@@ -909,7 +1007,7 @@ namespace Density3.EditorTools
             PlayerSettings.runInBackground = true;
 
             var report = BuildPipeline.BuildPlayer(
-                new[] { ScenePath }, "Builds/WebGL", BuildTarget.WebGL, BuildOptions.None);
+                new[] { TitleScenePath, ScenePath }, "Builds/WebGL", BuildTarget.WebGL, BuildOptions.None);
 
             if (report.summary.result == BuildResult.Succeeded)
             {
