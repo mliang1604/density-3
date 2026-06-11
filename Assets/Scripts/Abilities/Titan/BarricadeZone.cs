@@ -93,7 +93,7 @@ namespace Density3.Abilities
             if (collapsed) return;
             collapsed = true;
             FX.SpawnElementBurst(transform.position + Vector3.up * 0.9f, Element.Arc, 1.3f);
-            SFX.Play3D(SFX.AbilityDetonateClip, transform.position, 0.7f, 7f);
+            SFX.Play3D(SFX.ArcShockClip, transform.position, 0.75f, 7f);
             Destroy(gameObject);
         }
     }

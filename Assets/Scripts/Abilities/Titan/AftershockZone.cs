@@ -33,6 +33,8 @@ namespace Density3.Abilities
             glow.color = ElementPalette.Base(Element.Arc);
             glow.range = radius * 2f;
             glow.intensity = 1.8f;
+
+            SFX.AttachLoop(gameObject, SFX.ArcLoopClip, 0.45f, radius);
         }
 
         private void Update()

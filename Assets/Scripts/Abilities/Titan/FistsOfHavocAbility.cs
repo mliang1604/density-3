@@ -22,6 +22,7 @@ namespace Density3.Abilities
         public float chainDamage = 60f;
         public float aftershockDamagePerTick = 15f;
         public float aftershockSeconds = 4f;
+        [Range(0f, 1f)] public float superKillRefund = 0.05f; // bonus super energy per kill while roaming
         public float leapForward = 8f;
         public float leapUp = 6f;
         public float diveDown = 18f;
@@ -45,15 +46,19 @@ namespace Density3.Abilities
         {
             active = true;
             endTime = Time.time + durationSeconds;
+            GameEvents.EnemyKilled += OnSuperKill;
 
             if (weapon != null)
             {
                 weapon.SetHolstered(true);
                 if (weapon.viewmodel != null)
                 {
-                    // Arc crackle where the hands are for the whole super.
+                    // Arc crackle where the hands are for the whole super —
+                    // sparks and a sparking loop, both dying with the embers.
                     fistArcs = FX.AttachEmbers(weapon.viewmodel.gameObject, Element.Arc, 20f, 0.028f);
                     fistArcs.transform.localPosition = new Vector3(0f, -0.12f, 0.35f);
+                    var crackle = SFX.AttachLoop(fistArcs.gameObject, SFX.ArcLoopClip, 0.35f, 3f);
+                    if (crackle != null) crackle.spatialBlend = 0f; // the player's own hands
                 }
             }
             if (player != null) player.SpeedScale = speedBuff; // holstered: ADS won't rewrite it
@@ -103,15 +108,19 @@ namespace Density3.Abilities
             var aftershock = new GameObject("Aftershock").AddComponent<AftershockZone>();
             aftershock.transform.position = at;
             aftershock.Configure(aftershockDamagePerTick, slamRadius * 0.9f, aftershockSeconds, gameObject);
-            SFX.Play3D(SFX.AbilityDetonateClip, at, 1f, 12f);
+            SFX.Play3D(SFX.ArcShockClip, at, 1f, 12f);
             SFX.Play2D(SFX.GunshotFor(100f), 0.7f, 0.5f); // low crack for the quake
             if (player != null) player.AddRecoil(4f, 0.8f);
         }
+
+        /// <summary>Kills while the super is in effect feed the next super.</summary>
+        private void OnSuperKill() => AddEnergy(superKillRefund);
 
         private void EndSuper()
         {
             active = false;
             slamPending = false;
+            GameEvents.EnemyKilled -= OnSuperKill;
             if (player != null) player.SpeedScale = 1f;
             if (weapon != null) weapon.SetHolstered(false);
             if (fistArcs != null)

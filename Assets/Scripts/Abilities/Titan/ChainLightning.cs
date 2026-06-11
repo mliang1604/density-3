@@ -33,7 +33,7 @@ namespace Density3.Abilities
                 Vector3 b = next.transform.position + Vector3.up;
                 FX.SpawnBeam(a, b, Element.Arc, 0.06f, 0.3f);
                 FX.SpawnElementBurst(b, Element.Arc, 0.5f);
-                SFX.Play3D(SFX.BoltFireClip, b, 0.55f);
+                SFX.Play3D(SFX.ArcZapClip, b, 0.6f, 5f);
 
                 next.ApplyDamage(new DamageInfo
                 {

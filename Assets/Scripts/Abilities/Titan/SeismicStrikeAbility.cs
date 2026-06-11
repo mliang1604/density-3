@@ -92,7 +92,7 @@ namespace Density3.Abilities
             ChainLightning.Chain(hb.owner, chainDamage, gameObject);
             FX.SpawnElementBurst(at, Element.Arc, 1.2f);
             SFX.Play3D(SFX.MeleeImpactClip, at, 0.95f, 7f);
-            SFX.Play3D(SFX.AbilityDetonateClip, at, 0.6f, 7f);
+            SFX.Play3D(SFX.ArcShockClip, at, 0.8f, 7f);
         }
 
         /// <summary>One-shot outward shove through each victim's own

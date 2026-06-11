@@ -40,6 +40,7 @@ namespace Density3.Abilities
             energySphere.transform.SetParent(transform, true); // worldPositionStays
             sphere = energySphere.transform;
             sphere.localScale = Vector3.one * currentBase;
+            SFX.AttachLoop(gameObject, SFX.ArcLoopClip, 0.5f, radius);
 
             timer = PulseInterval; // first pulse fires immediately
         }
@@ -66,7 +67,7 @@ namespace Density3.Abilities
 
             AoEDamage.Apply(transform.position, pulseRadiusNow, damagePerPulse, source);
             FX.SpawnElementBurst(transform.position, Element.Arc, 0.7f + currentBase);
-            SFX.Play3D(SFX.BoltImpactClip, transform.position, 0.8f, 8f);
+            SFX.Play3D(SFX.ArcShockClip, transform.position, 0.85f, 8f);
 
             var chainOrigin = ChainLightning.NearestTarget(transform.position, pulseRadiusNow, source);
             if (chainOrigin != null) ChainLightning.Chain(chainOrigin, chainDamage, source);
