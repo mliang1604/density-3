@@ -1,0 +1,77 @@
+using System.Collections;
+using UnityEngine;
+using Density3.Core;
+using Density3.Player;
+using Density3.UI;
+
+namespace Density3.Abilities
+{
+    /// <summary>
+    /// Warlock super: a brief planted cast, then a large, slow void bomb
+    /// that detonates on impact with a huge AoE. The cast lock, screen kick,
+    /// and a void-tinted vignette pulse sell the weight. Energy is the full
+    /// super bar, spent by the activation gate.
+    /// </summary>
+    public class NovaBombAbility : AbilityBase
+    {
+        public float castLockSeconds = 0.4f;
+        public float projectileSpeed = 14f;
+        public float damage = 400f;
+        public float blastRadius = 6f;
+
+        private PlayerController player;
+        private Health health;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            player = GetComponent<PlayerController>();
+            health = GetComponent<Health>();
+        }
+
+        protected override void OnActivate() => StartCoroutine(Cast());
+
+        private IEnumerator Cast()
+        {
+            if (player != null) player.MovementLocked = true;
+            SFX.Play2D(SFX.SuperActivateClip, 0.9f);
+            yield return new WaitForSeconds(castLockSeconds);
+
+            if (health != null && health.IsDead) yield break; // respawn owns the lock
+            if (player != null) player.MovementLocked = false;
+
+            Transform cam = player != null && player.playerCamera != null
+                ? player.playerCamera.transform : transform;
+
+            var go = FX.SpawnBolt(cam.position + cam.forward * 0.8f, Element.Void);
+            go.name = "NovaBomb";
+            go.transform.localScale = Vector3.one * 0.6f;
+            var bombLight = go.AddComponent<Light>();
+            bombLight.type = LightType.Point;
+            bombLight.color = ElementPalette.Base(Element.Void);
+            bombLight.range = 6f;
+            bombLight.intensity = 3f;
+
+            var proj = go.AddComponent<ThrownAbilityProjectile>();
+            proj.gravity = -2f; // heavy float, mostly straight
+            proj.fuseSeconds = 6f;
+            proj.detonateOnImpact = true;
+            proj.Detonated += Detonate;
+            proj.Launch(cam.forward * projectileSpeed);
+
+            if (player != null) player.AddRecoil(6f, 1.5f);
+            var hud = FindFirstObjectByType<HUDController>();
+            if (hud != null) hud.PulseVignette(ElementPalette.Base(Element.Void), 0.45f);
+        }
+
+        private void Detonate(Vector3 at)
+        {
+            AoEDamage.Apply(at, blastRadius, damage, gameObject);
+            FX.SpawnElementBurst(at, Element.Void, 2.5f);
+            // Deep 2D crack plus a positioned thump — the boom is borrowed
+            // from the heavy gunshot, pitched down.
+            SFX.Play2D(SFX.GunshotFor(100f), 0.9f, 0.6f);
+            SFX.Play3D(SFX.BoltImpactClip, at, 1f, 12f);
+        }
+    }
+}

@@ -50,6 +50,7 @@ namespace Density3.UI
         private readonly float[] readyFlash = new float[4]; // super, grenade, melee, class
         private AbilityBase[] boundAbilities;
         private Action<bool>[] readyHandlers;
+        private Color vignetteBaseColor = new Color(0.7f, 0f, 0f);
 
         private void Start()
         {
@@ -61,6 +62,8 @@ namespace Density3.UI
             }
             if (playerHealth != null) playerHealth.Damaged += OnPlayerDamaged;
             GameEvents.EnemyKilled += OnEnemyKilled;
+
+            if (vignette != null) vignetteBaseColor = vignette.color;
 
             // The ring sprite is procedural; regenerate if the prefab doesn't have one.
             if (crosshairRing != null)
@@ -149,8 +152,26 @@ namespace Density3.UI
             if (respawnText != null) respawnText.gameObject.SetActive(show);
         }
 
-        private void OnPlayerDamaged(DamageInfo info) =>
+        /// <summary>One-off colored vignette pulse (super casts and the like).
+        /// The next damage pulse restores the standard red.</summary>
+        public void PulseVignette(Color tint, float alpha)
+        {
+            if (vignette == null) return;
+            tint.a = vignette.color.a;
+            vignette.color = tint;
+            vignetteAlpha = Mathf.Max(vignetteAlpha, alpha);
+        }
+
+        private void OnPlayerDamaged(DamageInfo info)
+        {
+            if (vignette != null)
+            {
+                Color c = vignetteBaseColor;
+                c.a = vignette.color.a;
+                vignette.color = c;
+            }
             vignetteAlpha = Mathf.Min(0.5f, vignetteAlpha + 0.3f);
+        }
 
         private void OnEnemyKilled()
         {
