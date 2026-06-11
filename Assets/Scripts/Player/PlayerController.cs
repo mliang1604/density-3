@@ -38,11 +38,11 @@ namespace Density3.Player
         [Range(1, 2)] public int airJumps = 1;
         public KeyCode tripleJumpToggleKey = KeyCode.J;
         [FormerlySerializedAs("doubleJumpHeight")]
-        public float strafeJumpHeight = 2.4f;
+        public float strafeJumpHeight = 3.84f;
         [Tooltip("Horizontal burst of the single strafe jump — a long forward lunge.")]
         public float strafeJumpBoost = 6f;
         [Tooltip("Triple-jump hops are lower and gentler, trading the strafe lunge for flexibility.")]
-        public float tripleJumpHeight = 1.3f;
+        public float tripleJumpHeight = 2.08f;
         public float tripleJumpBoost = 2f;
         public float gravity = -24f;
 
