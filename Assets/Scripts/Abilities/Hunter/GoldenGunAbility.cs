@@ -10,10 +10,10 @@ namespace Density3.Abilities
 {
     /// <summary>
     /// Hunter super: three shots of a massive-damage golden hand cannon,
-    /// riding the existing HandCannon machinery via its weapon-override API.
-    /// The active viewmodel is tinted gold for the duration (shared
-    /// materials saved and restored — never mutated). Ends after three
-    /// shots or the timer; the previous weapon returns with its exact mag.
+    /// riding the existing HandCannon machinery via its weapon-override API
+    /// with a dedicated runtime-built golden viewmodel (the frame's model
+    /// hides for the duration). Ends after three shots or the timer; the
+    /// previous weapon returns with its exact mag.
     /// </summary>
     public class GoldenGunAbility : AbilityBase
     {
@@ -23,15 +23,12 @@ namespace Density3.Abilities
         public float explosionRadius = 4f;
         public float chainDelaySeconds = 0.15f; // the chain reads as a cascade, not one blast
 
-        private static Material goldMaterial;
-
         private HandCannon weapon;
         private PlayerController player;
         private WeaponData goldenData;
+        private WeaponViewmodel goldenViewmodel;
         private float endTime;
         private bool active;
-        private readonly List<Renderer> tintedRenderers = new List<Renderer>();
-        private readonly List<Material[]> savedMaterials = new List<Material[]>();
 
         protected override void Awake()
         {
@@ -45,9 +42,10 @@ namespace Density3.Abilities
             if (weapon == null) return;
             if (goldenData == null) goldenData = BuildGoldenData();
 
-            weapon.BeginOverride(goldenData, rounds);
+            if (weapon.viewmodel != null)
+                goldenViewmodel = GoldenGunViewmodel.Build(weapon.viewmodel);
+            weapon.BeginOverride(goldenData, rounds, goldenViewmodel);
             weapon.TargetKilled += OnGunKill;
-            TintActiveViewmodel();
             active = true;
             endTime = Time.time + durationSeconds;
 
@@ -90,38 +88,11 @@ namespace Density3.Abilities
         {
             active = false;
             weapon.TargetKilled -= OnGunKill;
-            if (weapon.IsOverridden) weapon.EndOverride();
-            for (int i = 0; i < tintedRenderers.Count; i++)
-                if (tintedRenderers[i] != null)
-                    tintedRenderers[i].sharedMaterials = savedMaterials[i];
-            tintedRenderers.Clear();
-            savedMaterials.Clear();
-        }
-
-        private void TintActiveViewmodel()
-        {
-            if (goldMaterial == null)
+            if (weapon.IsOverridden) weapon.EndOverride(); // re-shows the frame model
+            if (goldenViewmodel != null)
             {
-                goldMaterial = new Material(Shader.Find("Standard"))
-                    { color = new Color(1f, 0.78f, 0.25f) };
-                goldMaterial.SetFloat("_Metallic", 0.85f);
-                goldMaterial.SetFloat("_Glossiness", 0.75f);
-                goldMaterial.EnableKeyword("_EMISSION");
-                goldMaterial.SetColor("_EmissionColor", ElementPalette.Emission(Element.Solar, 0.6f));
-            }
-
-            if (weapon.viewmodels == null) return;
-            foreach (var vm in weapon.viewmodels)
-            {
-                if (vm == null || !vm.gameObject.activeSelf) continue;
-                foreach (var r in vm.GetComponentsInChildren<Renderer>())
-                {
-                    tintedRenderers.Add(r);
-                    savedMaterials.Add(r.sharedMaterials);
-                    var golden = new Material[r.sharedMaterials.Length];
-                    for (int i = 0; i < golden.Length; i++) golden[i] = goldMaterial;
-                    r.sharedMaterials = golden;
-                }
+                Destroy(goldenViewmodel.gameObject);
+                goldenViewmodel = null;
             }
         }
 

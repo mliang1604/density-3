@@ -38,6 +38,8 @@ namespace Density3.Weapons
 
         private WeaponData overrideData;
         private int overrideRounds;
+        private WeaponViewmodel overrideViewmodel;
+        private GameObject hiddenFrameViewmodel;
 
         public WeaponData Current =>
             overrideData != null ? overrideData
@@ -57,13 +59,23 @@ namespace Density3.Weapons
 
         /// <summary>Temporarily replaces the equipped weapon (supers). The
         /// previous weapon — and its exact mag state — returns on EndOverride.
-        /// Reloading and frame swapping are suspended while active.</summary>
-        public void BeginOverride(WeaponData weapon, int rounds)
+        /// Reloading and frame swapping are suspended while active. An
+        /// optional dedicated viewmodel replaces the frame's model for the
+        /// duration (caller owns its lifetime; the frame model re-shows on
+        /// end).</summary>
+        public void BeginOverride(WeaponData weapon, int rounds, WeaponViewmodel viewmodelOverride = null)
         {
             overrideData = weapon;
             overrideRounds = rounds;
             reloading = false;
             nextFireTime = Time.time + 0.25f;
+
+            overrideViewmodel = viewmodelOverride;
+            if (viewmodelOverride != null && FrameViewmodel != null)
+            {
+                hiddenFrameViewmodel = FrameViewmodel.gameObject;
+                hiddenFrameViewmodel.SetActive(false);
+            }
             PushMagnetismStats();
         }
 
@@ -71,7 +83,13 @@ namespace Density3.Weapons
         {
             overrideData = null;
             overrideRounds = 0;
+            overrideViewmodel = null;
             nextFireTime = Time.time + 0.25f;
+            if (hiddenFrameViewmodel != null)
+            {
+                hiddenFrameViewmodel.SetActive(true);
+                hiddenFrameViewmodel = null;
+            }
             PushMagnetismStats();
         }
 
@@ -92,10 +110,13 @@ namespace Density3.Weapons
             PushMagnetismStats();
         }
 
-        private WeaponViewmodel ActiveViewmodel =>
+        private WeaponViewmodel FrameViewmodel =>
             (viewmodels != null && viewmodels.Length > 0)
                 ? viewmodels[Mathf.Clamp(currentIndex, 0, viewmodels.Length - 1)]
                 : null;
+
+        private WeaponViewmodel ActiveViewmodel =>
+            overrideViewmodel != null ? overrideViewmodel : FrameViewmodel;
 
         /// <summary>Shows only the model matching the equipped frame.</summary>
         private void SetViewmodelIndex(int index)
