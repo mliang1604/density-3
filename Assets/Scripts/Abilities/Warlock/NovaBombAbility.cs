@@ -22,8 +22,8 @@ namespace Density3.Abilities
         public float vortexDamagePerTick = 25f;
         public float vortexSeconds = 6f;
         [Tooltip("Only enemies within this angle of the throw vector are tracked.")]
-        public float trackingConeDegrees = 25f;
-        public float trackingTurnRate = 60f; // deg/sec
+        public float trackingConeDegrees = 35f;
+        public float trackingTurnRate = 180f; // deg/sec — seeks hard
 
         private PlayerController player;
         private Health health;

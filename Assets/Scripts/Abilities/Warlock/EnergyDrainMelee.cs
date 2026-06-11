@@ -20,8 +20,7 @@ namespace Density3.Abilities
         public float trackingTurnRate = 240f; // deg/sec — the palm snaps hard
         public float waveSpeed = 30f;
         public float waveCastRadius = 0.5f;   // forgiving contact check
-        public float damage = 80f;
-        public float critMultiplier = 1.4f;
+        public float damage = 160f;           // lethal to a Dreg (150hp); no crits
         [Range(0f, 1f)] public float grenadeRefundOnHit = 0.25f;
 
         private PlayerController player;
@@ -73,10 +72,11 @@ namespace Density3.Abilities
 
             var targetHealth = hb.owner;
             bool wasAlive = targetHealth != null && !targetHealth.IsDead;
-            float applied = hb.Hit(damage, critMultiplier, hit.point, gameObject);
+            // Melee doesn't crit: multiplier 1 regardless of zone.
+            float applied = hb.Hit(damage, 1f, hit.point, gameObject);
             if (applied <= 0f) return;
 
-            DamageNumbers.Spawn(hit.point, applied, hb.isCritZone);
+            DamageNumbers.Spawn(hit.point, applied, false);
             FX.SpawnElementBurst(hit.point, Element.Void, 0.6f);
 
             // The drain: hits feed the grenade, kills refund the melee in full.
