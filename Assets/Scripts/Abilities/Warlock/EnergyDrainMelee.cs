@@ -6,17 +6,20 @@ using Density3.UI;
 namespace Density3.Abilities
 {
     /// <summary>
-    /// Warlock melee: a short-range void palm. Lands through the regular
-    /// Hitbox path so crit zones still count. The drain identity: any hit
-    /// refunds a chunk of grenade energy, and a kill refunds the melee in
-    /// full. Spam is gated by the ability's own charge — activation always
-    /// spends the bar.
+    /// Warlock melee: a homing void wave. The wave IS the attack — it
+    /// carries the damage and curves toward the target nearest the aim
+    /// vector, so the visual and the hit can never desync. Lands through
+    /// the regular Hitbox path so crit zones still count. The drain
+    /// identity: any hit refunds a chunk of grenade energy, and a kill
+    /// refunds the melee in full. Spam is gated by the activation cost.
     /// </summary>
     public class EnergyDrainMelee : AbilityBase
     {
-        public float range = 5.5f; // D2-style charged-melee lunge reach
-        public float castRadius = 1f; // a generous palm — forgiveness over precision
+        public float range = 11f;             // a true void lunge
+        public float trackingConeDegrees = 35f;
+        public float trackingTurnRate = 240f; // deg/sec — the palm snaps hard
         public float waveSpeed = 30f;
+        public float waveCastRadius = 0.5f;   // forgiving contact check
         public float damage = 80f;
         public float critMultiplier = 1.4f;
         [Range(0f, 1f)] public float grenadeRefundOnHit = 0.25f;
@@ -37,9 +40,6 @@ namespace Density3.Abilities
             Transform cam = player != null && player.playerCamera != null
                 ? player.playerCamera.transform : transform;
 
-            // Visible void wave flying the palm's path. Purely cosmetic — the
-            // damage is the instant spherecast below, so hits stay reliable;
-            // the wave self-destructs at max range or on the first surface.
             var wave = FX.SpawnBolt(cam.position + cam.forward * 0.4f, Element.Void);
             wave.name = "VoidPalmWave";
             wave.transform.localScale = Vector3.one * 0.45f;
@@ -49,16 +49,21 @@ namespace Density3.Abilities
             waveLight.color = ElementPalette.Base(Element.Void);
             waveLight.range = 4f;
             waveLight.intensity = 2.5f;
+
             var waveProj = wave.AddComponent<ThrownAbilityProjectile>();
             waveProj.gravity = 0f;
             waveProj.detonateOnImpact = true;
             waveProj.fuseSeconds = range / waveSpeed;
+            waveProj.castRadius = waveCastRadius;
+            waveProj.homingTarget = Targeting.NearestToAim(
+                cam.position, cam.forward, trackingConeDegrees, range * 1.2f, gameObject);
+            waveProj.homingDegreesPerSecond = trackingTurnRate;
+            waveProj.Impacted += OnWaveImpact;
             waveProj.Launch(cam.forward * waveSpeed);
+        }
 
-            if (!Physics.SphereCast(cam.position, castRadius, cam.forward, out RaycastHit hit,
-                    range, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                return;
-
+        private void OnWaveImpact(RaycastHit hit)
+        {
             var hb = hit.collider.GetComponent<Hitbox>();
             if (hb == null)
             {

@@ -63,7 +63,8 @@ namespace Density3.Abilities
             proj.gravity = -2f; // heavy float, mostly straight
             proj.fuseSeconds = 6f;
             proj.detonateOnImpact = true;
-            proj.homingTarget = AcquireTarget(cam.position, cam.forward);
+            proj.homingTarget = Targeting.NearestToAim(
+                cam.position, cam.forward, trackingConeDegrees, 0f, gameObject);
             proj.homingDegreesPerSecond = trackingTurnRate;
             proj.Detonated += Detonate;
             proj.Launch(cam.forward * projectileSpeed);
@@ -71,25 +72,6 @@ namespace Density3.Abilities
             if (player != null) player.AddRecoil(6f, 1.5f);
             var hud = FindFirstObjectByType<HUDController>();
             if (hud != null) hud.PulseVignette(ElementPalette.Base(Element.Void), 0.45f);
-        }
-
-        /// <summary>The living target nearest the throw vector (smallest angle
-        /// off it, within the tracking cone) — what the bomb curves toward.</summary>
-        private Transform AcquireTarget(Vector3 origin, Vector3 dir)
-        {
-            Transform best = null;
-            float bestAngle = trackingConeDegrees;
-            foreach (var h in FindObjectsByType<Health>(FindObjectsSortMode.None))
-            {
-                if (h.IsDead || h.gameObject == gameObject) continue;
-                float angle = Vector3.Angle(dir, h.transform.position + Vector3.up - origin);
-                if (angle < bestAngle)
-                {
-                    bestAngle = angle;
-                    best = h.transform;
-                }
-            }
-            return best;
         }
 
         private void Detonate(Vector3 at)
