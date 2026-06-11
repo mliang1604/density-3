@@ -22,7 +22,7 @@ namespace Density3.Core
         private static AudioClip playerHurt;
         private static AudioClip boltFire;
         private static AudioClip boltImpact;
-        private static AudioClip doubleJump;
+        private static AudioClip strafeJump;
         private static AudioClip enemyDeath;
         private static AudioClip etherBurst;
         private static AudioClip slide;
@@ -35,7 +35,7 @@ namespace Density3.Core
         public static AudioClip PlayerHurtClip { get { EnsureClips(); return playerHurt; } }
         public static AudioClip BoltFireClip { get { EnsureClips(); return boltFire; } }
         public static AudioClip BoltImpactClip { get { EnsureClips(); return boltImpact; } }
-        public static AudioClip DoubleJumpClip { get { EnsureClips(); return doubleJump; } }
+        public static AudioClip StrafeJumpClip { get { EnsureClips(); return strafeJump; } }
         public static AudioClip EnemyDeathClip { get { EnsureClips(); return enemyDeath; } }
         public static AudioClip EtherBurstClip { get { EnsureClips(); return etherBurst; } }
         public static AudioClip SlideClip { get { EnsureClips(); return slide; } }
@@ -144,7 +144,7 @@ namespace Density3.Core
             playerHurt = BuildThump("sfx_hurt", 75f, 0.25f, 0.09f, 0.04f, 0.4f, 0.9f);
             boltImpact = BuildThump("sfx_bolt_impact", 300f, 0.15f, 0.04f, 0.025f, 0.8f, 0.6f);
             boltFire = BuildZap("sfx_bolt_fire", 0.2f, 0.7f);
-            doubleJump = BuildWhoosh("sfx_double_jump", 0.3f, 0.8f);
+            strafeJump = BuildWhoosh("sfx_strafe_jump", 0.3f, 0.8f);
             enemyDeath = BuildDeathPop("sfx_enemy_death", 0.35f, 0.9f);
             etherBurst = BuildEther("sfx_ether_burst", 1.5f, 1.05f);
             slide = BuildWhoosh("sfx_slide", 0.6f, 0.7f);

@@ -1,11 +1,13 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using Density3.Core;
 
 namespace Density3.Player
 {
     /// <summary>
     /// First-person character controller with Destiny-style movement:
-    /// sprint, double jump, crouch, crouch-slide, and weapon-driven recoil.
+    /// sprint, momentum-boosting strafe jumps (toggleable double/triple),
+    /// crouch, crouch-slide, and weapon-driven recoil.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
@@ -32,7 +34,13 @@ namespace Density3.Player
 
         [Header("Jump")]
         public float jumpHeight = 1.3f;
-        public float doubleJumpHeight = 2.4f;
+        [FormerlySerializedAs("doubleJumpHeight")]
+        public float strafeJumpHeight = 2.4f;
+        [Tooltip("Horizontal burst added along your movement direction by each strafe jump.")]
+        public float strafeJumpBoost = 3.5f;
+        [Tooltip("Air jumps available: 1 = strafe (double) jump, 2 = triple jump.")]
+        [Range(1, 2)] public int airJumps = 1;
+        public KeyCode tripleJumpToggleKey = KeyCode.J;
         public float gravity = -24f;
 
         [Header("Look")]
@@ -53,7 +61,7 @@ namespace Density3.Player
         private Vector3 velocity;
         private float yaw;
         private float pitch;
-        private bool hasDoubleJump = true;
+        private int airJumpsLeft;
         private Vector2 recoil; // x = pitch kick (up), y = yaw kick
         private float recoilRecovery = 8f;
 
@@ -92,6 +100,13 @@ namespace Density3.Player
                 return;
             }
             if (MovementLocked) return;
+
+            if (Input.GetKeyDown(tripleJumpToggleKey))
+            {
+                airJumps = airJumps == 1 ? 2 : 1;
+                // Pitch up = triple jump on, pitch down = back to double.
+                SFX.Play2D(SFX.ReloadStartClip, 0.45f, airJumps == 2 ? 1.5f : 0.75f);
+            }
 
             HandleLook();
             HandleMovement();
@@ -142,7 +157,7 @@ namespace Density3.Player
             bool grounded = controller.isGrounded;
             if (grounded)
             {
-                hasDoubleJump = true;
+                airJumpsLeft = airJumps;
                 if (velocity.y < 0f) velocity.y = -2f;
             }
 
@@ -183,11 +198,23 @@ namespace Density3.Player
                     if (isSliding) EndSlide();
                     velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 }
-                else if (hasDoubleJump)
+                else if (airJumpsLeft > 0)
                 {
-                    hasDoubleJump = false;
-                    velocity.y = Mathf.Sqrt(doubleJumpHeight * -2f * gravity);
-                    SFX.Play2D(SFX.DoubleJumpClip, 0.5f, Random.Range(0.95f, 1.05f));
+                    airJumpsLeft--;
+                    velocity.y = Mathf.Sqrt(strafeJumpHeight * -2f * gravity);
+
+                    // Strafe jump: burst of momentum along the movement input
+                    // (forward if neutral), capped so chained jumps can't
+                    // stack to silly speeds.
+                    Vector3 boostDir = transform.right * input.x + transform.forward * input.y;
+                    boostDir = boostDir.sqrMagnitude > 0.01f ? boostDir.normalized : transform.forward;
+                    Vector3 boosted = new Vector3(velocity.x, 0f, velocity.z) + boostDir * strafeJumpBoost;
+                    float maxAirSpeed = sprintSpeed * 1.25f;
+                    if (boosted.magnitude > maxAirSpeed) boosted = boosted.normalized * maxAirSpeed;
+                    velocity.x = boosted.x;
+                    velocity.z = boosted.z;
+
+                    SFX.Play2D(SFX.StrafeJumpClip, 0.5f, Random.Range(0.95f, 1.05f));
                 }
             }
 

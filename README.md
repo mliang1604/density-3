@@ -25,7 +25,8 @@ If the scene is ever missing or broken, regenerate it from the menu:
 | Shift | Sprint |
 | C | Crouch (hold) |
 | C while sprinting | Crouch-slide |
-| Space | Jump / double jump |
+| Space | Jump / strafe jump (adds momentum) |
+| J | Toggle double / triple jump |
 | 1 / 2 / 3 | Swap hand cannon frame |
 | Esc | Free the cursor (click to re-lock) |
 
@@ -46,11 +47,12 @@ If the scene is ever missing or broken, regenerate it from the menu:
   Range / Stability stats (0–100), with per-shot bloom, recovery, and ADS
   tightening. Select the Player in the Scene view to see the cone gizmo;
   enemies live on the "Enemy" layer (6).
-- **Guardian-style movement**: sprint, high double jump, regenerating shields
-  (recharge after 4 s out of combat), death + respawn.
+- **Guardian-style movement**: sprint, momentum-boosting strafe jumps with a
+  double/triple-jump toggle (J), regenerating shields (recharge after 4 s out
+  of combat), death + respawn.
 - **Audio** (`Assets/Scripts/Core/SFX.cs`): gunshots use a royalty-free
   recording pitched per frame (swappable on the GameManager); reload/dry-fire
-  clicks, the ether-gas scream, enemy bolts, deaths, and the double-jump boost
+  clicks, the ether-gas scream, enemy bolts, deaths, and the strafe-jump boost
   are synthesized at runtime.
 - **Test range**: dummies at 10/20/35/50 m with range markers (watch falloff),
   one moving target, and three Fallen Dreg enemies that chase, strafe, and shoot back.

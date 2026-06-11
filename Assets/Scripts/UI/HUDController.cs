@@ -146,7 +146,7 @@ namespace Density3.UI
 
             hintText = MakeText(root, "Hint", 16, TextAnchor.LowerRight);
             Anchor(hintText.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 14f), new Vector2(620f, 22f));
-            hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide   [Space] double jump";
+            hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide   [Space] strafe jump   [J] triple jump";
             hintText.color = new Color(1f, 1f, 1f, 0.45f);
 
             killsText = MakeText(root, "Kills", 26, TextAnchor.UpperRight);
