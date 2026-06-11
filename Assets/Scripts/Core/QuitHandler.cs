@@ -4,13 +4,15 @@ namespace Density3.Core
 {
     /// <summary>
     /// Global exit-to-desktop control, present in every scene. On the title
-    /// screen a tap quits; in gameplay it requires a hold, so the Esc tap
-    /// that merely frees the cursor can't kill the app. (In WebGL builds
-    /// Application.Quit is a no-op — browsers own the tab.)
+    /// screen a tap quits; in gameplay it requires a hold, so a stray tap
+    /// can't kill the app. Esc is deliberately not the quit key: in the
+    /// browser it exits fullscreen and releases pointer lock before the
+    /// game ever sees it. (In WebGL builds Application.Quit is a no-op —
+    /// browsers own the tab.)
     /// </summary>
     public class QuitHandler : MonoBehaviour
     {
-        public KeyCode quitKey = KeyCode.Escape;
+        public KeyCode quitKey = KeyCode.Backspace;
         public bool requireHold;
         public float holdSeconds = 1.2f;
 

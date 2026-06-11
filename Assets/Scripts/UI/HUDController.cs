@@ -7,8 +7,8 @@ using Density3.Weapons;
 namespace Density3.UI
 {
     /// <summary>
-    /// HUD: crosshair, shield bar, ammo counter, kill counter, reload indicator,
-    /// damage vignette, respawn overlay. The layout lives in the HUD prefab
+    /// HUD: crosshair, shield bar, ammo counter, kill counter, FPS counter,
+    /// reload indicator, damage vignette, respawn overlay. The layout lives in the HUD prefab
     /// (generated once by the editor bootstrap via BuildLayout, then freely
     /// editable); player/weapon references are resolved at runtime in Start.
     /// </summary>
@@ -21,6 +21,7 @@ namespace Density3.UI
         public Text reloadText;
         public Text respawnText;
         public Text hintText;
+        public Text fpsText;
         public Image healthFill;
         public Image vignette;
         public GameObject crosshairRing;
@@ -32,6 +33,8 @@ namespace Density3.UI
         private int kills;
         private int lastAirJumps; // 0 forces a hint refresh on the first frame
         private Font font;
+        private int fpsFrames;
+        private float fpsTimer;
 
         private void Start()
         {
@@ -49,6 +52,13 @@ namespace Density3.UI
             {
                 var img = crosshairRing.GetComponent<Image>();
                 if (img != null && img.sprite == null) img.sprite = MakeRingSprite(64, 26f, 3f);
+            }
+
+            // HUD prefabs predating the FPS counter don't have one wired; build it.
+            if (fpsText == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas != null) MakeFpsText(canvas.transform);
             }
         }
 
@@ -83,15 +93,28 @@ namespace Density3.UI
                 vignette.color = vc;
             }
 
+            // Averaging over a short window keeps the readout from flickering.
+            fpsFrames++;
+            fpsTimer += Time.unscaledDeltaTime;
+            if (fpsTimer >= 0.5f)
+            {
+                if (fpsText != null) fpsText.text = "FPS  " + Mathf.RoundToInt(fpsFrames / fpsTimer);
+                fpsFrames = 0;
+                fpsTimer = 0f;
+            }
+
             // Keep the [Space] hint in sync with the current jump type.
             if (hintText != null && playerController != null && playerController.airJumps != lastAirJumps)
             {
                 lastAirJumps = playerController.airJumps;
-                string jumpName = lastAirJumps == 2 ? "triple jump" : "strafe jump";
-                hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide"
-                    + "   [Space] " + jumpName + "   [J] toggle jump type   [hold Esc] exit";
+                hintText.text = HintText(lastAirJumps == 2 ? "triple jump" : "strafe jump");
             }
         }
+
+        /// <summary>The control-hint line; the [Space] entry names the active jump type.</summary>
+        private static string HintText(string jumpName) =>
+            "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide"
+            + "   [Space] " + jumpName + "   [J] toggle jump type   [hold Backspace] exit";
 
         public void ShowRespawnOverlay(bool show)
         {
@@ -162,12 +185,14 @@ namespace Density3.UI
 
             hintText = MakeText(root, "Hint", 16, TextAnchor.LowerRight);
             Anchor(hintText.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 14f), new Vector2(620f, 22f));
-            hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide   [Space] strafe jump   [J] toggle jump type   [hold Esc] exit";
+            hintText.text = HintText("strafe jump");
             hintText.color = new Color(1f, 1f, 1f, 0.45f);
 
             killsText = MakeText(root, "Kills", 26, TextAnchor.UpperRight);
             Anchor(killsText.rectTransform, new Vector2(1f, 1f), new Vector2(-40f, -28f), new Vector2(300f, 34f));
             killsText.text = "KILLS  0";
+
+            MakeFpsText(root);
 
             reloadText = MakeText(root, "Reload", 22, TextAnchor.MiddleCenter);
             SetCenter(reloadText.rectTransform, new Vector2(0f, -60f), new Vector2(300f, 30f));
@@ -180,6 +205,16 @@ namespace Density3.UI
             respawnText.text = "GUARDIAN DOWN - RESPAWNING...";
             respawnText.color = new Color(1f, 0.35f, 0.3f, 1f);
             respawnText.gameObject.SetActive(false);
+        }
+
+        /// <summary>Top-left FPS readout, mirroring the kill counter's placement.
+        /// Called from BuildLayout and, for prefabs that predate it, from Start.</summary>
+        private void MakeFpsText(Transform root)
+        {
+            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            fpsText = MakeText(root, "FPS", 26, TextAnchor.UpperLeft);
+            Anchor(fpsText.rectTransform, new Vector2(0f, 1f), new Vector2(40f, -28f), new Vector2(300f, 34f));
+            fpsText.text = "FPS  --";
         }
 
         private Image MakeImage(Transform parent, string name, Color color)

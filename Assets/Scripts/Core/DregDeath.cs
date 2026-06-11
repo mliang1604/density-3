@@ -69,8 +69,7 @@ namespace Density3.Core
             if (dead) return;
             dead = true;
 
-            GameEvents.RaiseEnemyKilled();
-            SFX.Play3D(SFX.EnemyDeathClip, transform.position, 0.9f);
+            GameEvents.AnnounceEnemyKilled(transform.position);
 
             bool precisionKill = health.LastDamage.isCrit;
             EnableRagdoll();
@@ -155,10 +154,7 @@ namespace Density3.Core
                 foreach (var r in headRenderers) if (r != null) r.enabled = true;
             if (headCritCollider != null) headCritCollider.enabled = true;
 
-            // Teleport home (CharacterController must be off while we move it).
-            if (cc != null) cc.enabled = false;
-            transform.SetPositionAndRotation(startPos, startRot);
-            if (cc != null) cc.enabled = true;
+            CharacterTeleport.To(transform, startPos, startRot);
 
             if (animator != null)
             {

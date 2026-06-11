@@ -95,30 +95,10 @@ namespace Density3.Enemies
             // Player is on the Ignore Raycast layer, so a hit here means a wall is in the way.
             if (Physics.Linecast(origin, target)) return;
 
-            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = "EnemyBolt";
-            Destroy(go.GetComponent<Collider>());
-            go.transform.position = origin;
-            go.transform.localScale = Vector3.one * 0.22f;
-            go.GetComponent<Renderer>().material = ProjectileMaterial();
-            var proj = go.AddComponent<EnemyProjectile>();
+            var proj = FX.SpawnBolt(origin).AddComponent<EnemyProjectile>();
             proj.Launch(dir, playerHealth, projectileSpeed, projectileDamage);
             SFX.Play3D(SFX.BoltFireClip, origin, 0.8f);
             Fired?.Invoke();
-        }
-
-        private static Material projMat;
-
-        private static Material ProjectileMaterial()
-        {
-            if (projMat == null)
-            {
-                projMat = new Material(Shader.Find("Standard"));
-                projMat.color = new Color(0.6f, 0.2f, 1f);
-                projMat.EnableKeyword("_EMISSION");
-                projMat.SetColor("_EmissionColor", new Color(0.55f, 0.2f, 1f) * 2.5f);
-            }
-            return projMat;
         }
     }
 }

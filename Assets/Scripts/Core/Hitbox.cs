@@ -11,10 +11,10 @@ namespace Density3.Core
         public Health owner;
         public bool isCritZone;
 
-        /// <summary>Returns the damage actually applied, or -1 if the owner is missing/dead.</summary>
+        /// <summary>Returns the damage actually applied (0 when the owner is missing or already dead).</summary>
         public float Hit(float baseDamage, float critMultiplier, Vector3 point, GameObject source)
         {
-            if (owner == null || owner.IsDead) return -1f;
+            if (owner == null || owner.IsDead) return 0f;
             float amount = isCritZone ? baseDamage * critMultiplier : baseDamage;
             owner.ApplyDamage(new DamageInfo
             {

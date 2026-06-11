@@ -68,8 +68,9 @@ namespace Density3.EditorTools
 
         /// <summary>
         /// Destiny-style title screen: the rasterized title card stretched over
-        /// the whole screen, a pulsing "press Enter" prompt, and an Esc exit
-        /// hint. Esc on the title quits immediately (QuitHandler, tap mode).
+        /// the whole screen, a pulsing "press Enter" prompt, and a Backspace
+        /// exit hint. Backspace on the title quits immediately (QuitHandler,
+        /// tap mode). Esc is left to the browser: fullscreen + pointer lock.
         /// </summary>
         private static void BuildTitleScene()
         {
@@ -132,7 +133,7 @@ namespace Density3.EditorTools
             pressRect.anchoredPosition = new Vector2(0f, 150f);
             pressRect.sizeDelta = new Vector2(1200f, 44f);
 
-            var exit = MakeTitleText("ExitHint", "[Esc]  Exit to Desktop", 22, new Color(0.93f, 0.88f, 0.78f, 0.6f));
+            var exit = MakeTitleText("ExitHint", "[Backspace]  Exit to Desktop", 22, new Color(0.93f, 0.88f, 0.78f, 0.6f));
             var exitRect = exit.rectTransform;
             exitRect.anchorMin = exitRect.anchorMax = new Vector2(0f, 0f);
             exitRect.pivot = new Vector2(0f, 0f);
@@ -898,7 +899,7 @@ namespace Density3.EditorTools
             if (gm.gunshotRecording == null)
                 gm.gunshotRecording = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/HandCannonShot.mp3");
 
-            // Global exit: hold Esc in gameplay (a tap only frees the cursor).
+            // Global exit: hold Backspace in gameplay (Esc belongs to the browser).
             var quit = gmGO.AddComponent<QuitHandler>();
             quit.requireHold = true;
 

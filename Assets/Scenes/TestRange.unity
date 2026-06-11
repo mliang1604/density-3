@@ -1250,7 +1250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8fcd615cef1a57438175838a8170e74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  quitKey: 27
+  quitKey: 8
   requireHold: 1
   holdSeconds: 1.2
 --- !u!114 &460518463
