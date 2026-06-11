@@ -20,6 +20,8 @@ namespace Density3.Abilities
         public float slamDamage = 250f;
         public float slamRadius = 5f;
         public float chainDamage = 60f;
+        public float aftershockDamagePerTick = 15f;
+        public float aftershockSeconds = 4f;
         public float leapForward = 8f;
         public float leapUp = 6f;
         public float diveDown = 18f;
@@ -96,6 +98,11 @@ namespace Density3.Abilities
             var chainOrigin = ChainLightning.NearestTarget(at, slamRadius, gameObject);
             if (chainOrigin != null) ChainLightning.Chain(chainOrigin, chainDamage, gameObject);
             FX.SpawnElementBurst(at, Element.Arc, 2f);
+
+            // The ground stays angry for a few seconds.
+            var aftershock = new GameObject("Aftershock").AddComponent<AftershockZone>();
+            aftershock.transform.position = at;
+            aftershock.Configure(aftershockDamagePerTick, slamRadius * 0.9f, aftershockSeconds, gameObject);
             SFX.Play3D(SFX.AbilityDetonateClip, at, 1f, 12f);
             SFX.Play2D(SFX.GunshotFor(100f), 0.7f, 0.5f); // low crack for the quake
             if (player != null) player.AddRecoil(4f, 0.8f);

@@ -5,17 +5,17 @@ namespace Density3.Abilities
 {
     /// <summary>
     /// The pulse grenade's detonation zone: a churning arc energy sphere
-    /// that grows with each of three shocks at a fixed cadence — the sphere's
-    /// edge always shows the kill radius, swelling to full size on the final
-    /// pulse. Each shock damages the zone, bursts, and starts an arc chain
-    /// from the victim nearest the heart. Self-destructs after the last pulse.
+    /// that breathes with the shocks. Each pulse pops the sphere out to a
+    /// bigger size (half, three-quarters, then full radius) and damages
+    /// exactly that area; between shocks the sphere contracts as it charges
+    /// the next one. Every shock also starts an arc chain from the victim
+    /// nearest the heart. Self-destructs after the third pulse.
     /// </summary>
     public class PulseZone : MonoBehaviour
     {
-        private const int PulseCount = 3;
         private const float PulseInterval = 0.9f;
-        private const float StartScale = 0.35f;
-        private const float GrowSpeed = 1.6f; // scale units/sec toward each pulse's size
+        private const float ContractFraction = 0.78f; // how far it shrinks between shocks
+        private static readonly float[] PulseScales = { 0.5f, 0.75f, 1f };
 
         private float damagePerPulse;
         private float radius;
@@ -24,7 +24,7 @@ namespace Density3.Abilities
         private float timer;
         private int pulsesDone;
         private Transform sphere;
-        private float targetScale = StartScale;
+        private float currentBase = 0.35f;
 
         public void Configure(float pulseDamage, float pulseRadius, float chainDamagePerJump,
             GameObject damageSource)
@@ -34,38 +34,45 @@ namespace Density3.Abilities
             chainDamage = chainDamagePerJump;
             source = damageSource;
 
-            // Built at full radius, scaled down, grown pulse by pulse — the
-            // shell's edge is the damage edge at the final size.
+            // Built at full radius and scaled, so the shell's edge always
+            // shows exactly where the current pulse hurts.
             var energySphere = FX.SpawnEnergySphere(transform.position, Element.Arc, radius);
             energySphere.transform.SetParent(transform, true); // worldPositionStays
             sphere = energySphere.transform;
-            sphere.localScale = Vector3.one * StartScale;
+            sphere.localScale = Vector3.one * currentBase;
 
             timer = PulseInterval; // first pulse fires immediately
         }
 
         private void Update()
         {
-            if (sphere != null)
-                sphere.localScale = Vector3.one * Mathf.MoveTowards(
-                    sphere.localScale.x, targetScale, GrowSpeed * Time.deltaTime);
-
-            if (pulsesDone >= PulseCount) return;
-
             timer += Time.deltaTime;
-            if (timer < PulseInterval) return;
+
+            // The breath: pop to the pulse size on the shock, contract while
+            // charging the next.
+            if (sphere != null)
+            {
+                float settle = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(timer / PulseInterval));
+                sphere.localScale = Vector3.one
+                    * Mathf.Lerp(currentBase, currentBase * ContractFraction, settle);
+            }
+
+            if (pulsesDone >= PulseScales.Length || timer < PulseInterval) return;
             timer = 0f;
 
+            currentBase = PulseScales[pulsesDone];
             pulsesDone++;
-            targetScale = (float)pulsesDone / PulseCount;
-            AoEDamage.Apply(transform.position, radius, damagePerPulse, source);
-            FX.SpawnElementBurst(transform.position, Element.Arc, 0.9f + 0.35f * pulsesDone);
+            float pulseRadiusNow = radius * currentBase;
+
+            AoEDamage.Apply(transform.position, pulseRadiusNow, damagePerPulse, source);
+            FX.SpawnElementBurst(transform.position, Element.Arc, 0.7f + currentBase);
             SFX.Play3D(SFX.BoltImpactClip, transform.position, 0.8f, 8f);
 
-            var chainOrigin = ChainLightning.NearestTarget(transform.position, radius, source);
+            var chainOrigin = ChainLightning.NearestTarget(transform.position, pulseRadiusNow, source);
             if (chainOrigin != null) ChainLightning.Chain(chainOrigin, chainDamage, source);
 
-            if (pulsesDone >= PulseCount) Destroy(gameObject, 0.4f); // let the sphere finish growing
+            if (pulsesDone >= PulseScales.Length)
+                Destroy(gameObject, 0.5f); // one last exhale, then gone
         }
     }
 }

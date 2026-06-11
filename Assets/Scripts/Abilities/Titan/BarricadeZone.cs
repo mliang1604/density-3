@@ -41,9 +41,11 @@ namespace Density3.Abilities
             health.SetMaxHealth(hp); // no regen: barricades break and stay broken
             health.Died += Collapse;
 
+            // Wings sweep back toward the caster so the wall cups the player
+            // (the cover side is the side you cast from).
             Panel("Center", new Vector3(0f, 0.9f, 0f), 0f);
-            Panel("Wing.L", new Vector3(-1.05f, 0.9f, 0.18f), 24f);
-            Panel("Wing.R", new Vector3(1.05f, 0.9f, 0.18f), -24f);
+            Panel("Wing.L", new Vector3(-1.05f, 0.9f, -0.18f), -24f);
+            Panel("Wing.R", new Vector3(1.05f, 0.9f, -0.18f), 24f);
 
             gameObject.AddComponent<DamageFlash>();
 
