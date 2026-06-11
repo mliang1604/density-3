@@ -46,6 +46,7 @@ namespace Density3.EditorTools
 
             var mats = BuildMaterials();
             var weapons = BuildWeapons();
+            BuildClasses();
             var playerPrefab = BuildPlayerPrefab(mats, weapons);
             var dummyPrefab = BuildDummyPrefab(mats);
             var dregPrefab = BuildDregPrefab(mats);
