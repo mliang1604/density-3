@@ -18,6 +18,9 @@ namespace Density3.Abilities
         public float projectileSpeed = 14f;
         public float damage = 400f;
         public float blastRadius = 6f;
+        public float vortexRadius = 4f;
+        public float vortexDamagePerTick = 25f;
+        public float vortexSeconds = 6f;
 
         private PlayerController player;
         private Health health;
@@ -72,6 +75,12 @@ namespace Density3.Abilities
             // from the heavy gunshot, pitched down.
             SFX.Play2D(SFX.GunshotFor(100f), 0.9f, 0.6f);
             SFX.Play3D(SFX.BoltImpactClip, at, 1f, 12f);
+
+            // Vortex Nova: the blast leaves a churning vortex behind, which
+            // also demarks the danger radius on the ground.
+            var zone = new GameObject("NovaVortex").AddComponent<VortexZone>();
+            zone.transform.position = at;
+            zone.Configure(vortexDamagePerTick, vortexRadius, vortexSeconds, gameObject);
         }
     }
 }

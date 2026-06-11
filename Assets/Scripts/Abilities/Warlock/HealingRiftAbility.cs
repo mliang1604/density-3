@@ -16,7 +16,7 @@ namespace Density3.Abilities
     {
         public float castSeconds = 1f;
         public float riftSeconds = 15f;
-        public float riftRadius = 2.2f;
+        public float riftRadius = 3.5f;
         public float healPerSecond = 20f;
 
         private PlayerController player;

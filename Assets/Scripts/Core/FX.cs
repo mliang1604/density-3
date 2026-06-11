@@ -68,6 +68,34 @@ namespace Density3.Core
             return m;
         }
 
+        /// <summary>Flat ground-level circle marking an ability zone's radius
+        /// (vortexes, rifts). Caller-owned — parent it to the zone so they
+        /// expire together.</summary>
+        public static LineRenderer SpawnGroundRing(Vector3 center, float radius, Element element,
+            float width = 0.08f)
+        {
+            const int segments = 40;
+            var go = new GameObject("GroundRing");
+            var lr = go.AddComponent<LineRenderer>();
+            if (lineMaterial == null) lineMaterial = new Material(Shader.Find("Sprites/Default"));
+            lr.material = lineMaterial;
+            lr.loop = true;
+            lr.positionCount = segments;
+            lr.startWidth = width;
+            lr.endWidth = width;
+            Color c = ElementPalette.Base(element);
+            lr.startColor = c;
+            lr.endColor = c;
+            lr.shadowCastingMode = ShadowCastingMode.Off;
+            lr.receiveShadows = false;
+            for (int i = 0; i < segments; i++)
+            {
+                float a = (float)i / segments * Mathf.PI * 2f;
+                lr.SetPosition(i, center + new Vector3(Mathf.Cos(a) * radius, 0.03f, Mathf.Sin(a) * radius));
+            }
+            return lr;
+        }
+
         /// <summary>Element-tinted beam (tripmine lasers, sniper telegraphs).
         /// Returns the LineRenderer so callers can move it; seconds &lt;= 0 makes
         /// it persistent and caller-owned.</summary>

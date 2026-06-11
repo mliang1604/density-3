@@ -13,8 +13,6 @@ namespace Density3.Abilities
     /// </summary>
     public class RiftZone : MonoBehaviour
     {
-        private const int CircleSegments = 40;
-
         private Health target;
         private float radius;
         private float remaining;
@@ -32,22 +30,8 @@ namespace Density3.Abilities
 
             Color c = ElementPalette.Base(Element.Void);
 
-            ring = gameObject.AddComponent<LineRenderer>();
-            ring.material = new Material(Shader.Find("Sprites/Default"));
-            ring.loop = true;
-            ring.positionCount = CircleSegments;
-            ring.startWidth = 0.07f;
-            ring.endWidth = 0.07f;
-            ring.startColor = c;
-            ring.endColor = c;
-            ring.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            ring.receiveShadows = false;
-            for (int i = 0; i < CircleSegments; i++)
-            {
-                float a = (float)i / CircleSegments * Mathf.PI * 2f;
-                ring.SetPosition(i, transform.position
-                    + new Vector3(Mathf.Cos(a) * radius, 0.03f, Mathf.Sin(a) * radius));
-            }
+            ring = FX.SpawnGroundRing(transform.position, radius, Element.Void, 0.09f);
+            ring.transform.SetParent(transform, false); // expires with the rift
 
             glow = gameObject.AddComponent<Light>();
             glow.type = LightType.Point;

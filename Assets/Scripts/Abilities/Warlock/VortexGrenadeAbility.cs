@@ -14,9 +14,9 @@ namespace Density3.Abilities
     {
         public float throwSpeed = 18f;
         public float detonateDamage = 50f;
-        public float vortexDamagePerTick = 15f;
+        public float vortexDamagePerTick = 12f;
         public float vortexRadius = 3f;
-        public float vortexSeconds = 3.5f;
+        public float vortexSeconds = 6f;
 
         private PlayerController player;
 

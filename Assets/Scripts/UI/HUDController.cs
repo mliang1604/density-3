@@ -42,8 +42,8 @@ namespace Density3.UI
         private int fpsFrames;
         private float fpsTimer;
 
-        private const float SuperBarWidth = 240f;
-        private const float AbilityBarWidth = 140f;
+        private const float SuperSize = 56f;
+        private const float AbilitySize = 34f;
         private PlayerAbilities abilities;
         private bool abilitiesBound;
         private Color abilityTint = new Color(0.92f, 0.96f, 1f, 0.95f);
@@ -222,20 +222,26 @@ namespace Density3.UI
 
         private void UpdateAbilityMeters()
         {
-            SetMeter(superFill, 0, SuperBarWidth);
-            SetMeter(grenadeFill, 1, AbilityBarWidth);
-            SetMeter(meleeFill, 2, AbilityBarWidth);
-            SetMeter(classFill, 3, AbilityBarWidth);
+            SetMeter(superFill, 0, SuperSize);
+            SetMeter(grenadeFill, 1, AbilitySize);
+            SetMeter(meleeFill, 2, AbilitySize);
+            SetMeter(classFill, 3, AbilitySize);
         }
 
-        private void SetMeter(Image fill, int slot, float width)
+        private void SetMeter(Image fill, int slot, float iconSize)
         {
             if (fill == null) return;
             float energy = boundAbilities != null && boundAbilities[slot] != null
                 ? boundAbilities[slot].Energy : 0f;
             readyFlash[slot] = Mathf.MoveTowards(readyFlash[slot], 0f, 2f * Time.deltaTime);
-            fill.rectTransform.sizeDelta = new Vector2((width - 2f) * energy, -2f);
-            fill.color = Color.Lerp(abilityTint, Color.white, readyFlash[slot]);
+
+            // Destiny-style: the icon fills bottom-to-top while charging, dim,
+            // then goes bright at full; the ready moment also flashes white.
+            fill.rectTransform.sizeDelta = new Vector2(-4f, (iconSize - 4f) * energy);
+            float brightness = energy >= 1f ? 1f : 0.55f;
+            var c = new Color(abilityTint.r * brightness, abilityTint.g * brightness,
+                abilityTint.b * brightness, abilityTint.a);
+            fill.color = Color.Lerp(c, Color.white, readyFlash[slot]);
         }
 
         // ----- One-time layout construction (called by the editor bootstrap; the
@@ -310,37 +316,51 @@ namespace Density3.UI
             respawnText.gameObject.SetActive(false);
         }
 
-        /// <summary>Bottom-left ability meters: super bar on top, then the
-        /// grenade/melee/class rows, each tagged with its key bind. Fills are
-        /// element-tinted once the loadout binds. Called from BuildLayout and,
-        /// for prefabs that predate it, from Start.</summary>
+        /// <summary>Destiny-style bottom-left ability cluster: a large diamond
+        /// super icon beside a row of square grenade/melee/class icons, each
+        /// filling bottom-to-top with energy (dim while charging, bright when
+        /// ready) and carrying its key bind as the glyph. Called from
+        /// BuildLayout and, for prefabs that predate it, from Start.</summary>
         private void MakeAbilityMeters(Transform root)
         {
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            superFill = MakeMeter(root, "Super", "Q", new Vector2(40f, 88f), new Vector2(SuperBarWidth, 10f));
-            grenadeFill = MakeMeter(root, "Grenade", "G", new Vector2(40f, 64f), new Vector2(AbilityBarWidth, 8f));
-            meleeFill = MakeMeter(root, "Melee", "V", new Vector2(40f, 46f), new Vector2(AbilityBarWidth, 8f));
-            classFill = MakeMeter(root, "Class", "F", new Vector2(40f, 28f), new Vector2(AbilityBarWidth, 8f));
+            superFill = MakeAbilityIcon(root, "Super", "Q", new Vector2(72f, 72f), SuperSize, 45f, 18);
+            grenadeFill = MakeAbilityIcon(root, "Grenade", "G", new Vector2(140f, 72f), AbilitySize, 0f, 14);
+            meleeFill = MakeAbilityIcon(root, "Melee", "V", new Vector2(184f, 72f), AbilitySize, 0f, 14);
+            classFill = MakeAbilityIcon(root, "Class", "F", new Vector2(228f, 72f), AbilitySize, 0f, 14);
         }
 
-        private Image MakeMeter(Transform root, string name, string key, Vector2 pos, Vector2 size)
+        private Image MakeAbilityIcon(Transform root, string name, string glyph, Vector2 center,
+            float size, float rotation, int glyphSize)
         {
-            var label = MakeText(root, name + "Key", 12, TextAnchor.MiddleLeft);
-            Anchor(label.rectTransform, new Vector2(0f, 0f), pos, new Vector2(14f, size.y + 4f));
-            label.text = key;
-            label.color = new Color(1f, 1f, 1f, 0.55f);
-
             var bg = MakeImage(root, name + "BG", new Color(0f, 0f, 0f, 0.55f));
-            Anchor(bg.rectTransform, new Vector2(0f, 0f), pos + new Vector2(18f, 0f), size);
+            var bgRect = bg.rectTransform;
+            bgRect.anchorMin = bgRect.anchorMax = new Vector2(0f, 0f);
+            bgRect.pivot = new Vector2(0.5f, 0.5f);
+            bgRect.anchoredPosition = center;
+            bgRect.sizeDelta = new Vector2(size, size);
+            bgRect.localRotation = Quaternion.Euler(0f, 0f, rotation);
 
-            // Same left-anchored fill idiom as HealthFill: width scales with energy.
-            var fill = MakeImage(bg.rectTransform, name + "Fill", new Color(0.92f, 0.96f, 1f, 0.95f));
+            // The fill grows upward inside the icon — through the rotated
+            // super diamond that reads as point-to-point, like D2's.
+            var fill = MakeImage(bgRect, name + "Fill", new Color(0.92f, 0.96f, 1f, 0.95f));
             var fr = fill.rectTransform;
             fr.anchorMin = new Vector2(0f, 0f);
-            fr.anchorMax = new Vector2(0f, 1f);
-            fr.pivot = new Vector2(0f, 0.5f);
-            fr.anchoredPosition = new Vector2(1f, 0f);
-            fr.sizeDelta = new Vector2(size.x - 2f, -2f);
+            fr.anchorMax = new Vector2(1f, 0f);
+            fr.pivot = new Vector2(0.5f, 0f);
+            fr.anchoredPosition = new Vector2(0f, 2f);
+            fr.sizeDelta = new Vector2(-4f, 0f);
+
+            // Key bind as the glyph, counter-rotated to stay upright.
+            var glyphText = MakeText(bgRect, name + "Glyph", glyphSize, TextAnchor.MiddleCenter);
+            glyphText.text = glyph;
+            glyphText.color = new Color(1f, 1f, 1f, 0.9f);
+            var gr = glyphText.rectTransform;
+            gr.anchorMin = Vector2.zero;
+            gr.anchorMax = Vector2.one;
+            gr.offsetMin = Vector2.zero;
+            gr.offsetMax = Vector2.zero;
+            gr.localRotation = Quaternion.Euler(0f, 0f, -rotation);
             return fill;
         }
 

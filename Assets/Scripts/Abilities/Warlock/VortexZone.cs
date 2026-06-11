@@ -12,7 +12,7 @@ namespace Density3.Abilities
     public class VortexZone : MonoBehaviour
     {
         private const float TickInterval = 0.33f;
-        private const float PuffInterval = 0.5f;
+        private const float PuffInterval = 0.35f;
 
         private float damagePerTick;
         private float radius;
@@ -32,7 +32,11 @@ namespace Density3.Abilities
             light.type = LightType.Point;
             light.color = ElementPalette.Base(Element.Void);
             light.range = radius * 2.5f;
-            light.intensity = 2.2f;
+            light.intensity = 3f;
+
+            // Demark the kill radius on the ground; dies with the zone.
+            var ring = FX.SpawnGroundRing(transform.position, radius, Element.Void);
+            ring.transform.SetParent(transform, false);
         }
 
         private void Update()
@@ -50,7 +54,7 @@ namespace Density3.Abilities
             if (puffTimer >= PuffInterval)
             {
                 puffTimer -= PuffInterval;
-                FX.SpawnElementBurst(transform.position, Element.Void, 0.8f);
+                FX.SpawnElementBurst(transform.position, Element.Void, 1f);
             }
 
             if (remaining <= 0f) Destroy(gameObject);
