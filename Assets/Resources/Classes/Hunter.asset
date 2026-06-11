@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5257535191619078341
+--- !u!114 &-6416241370374868142
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -17,23 +17,6 @@ MonoBehaviour:
   cooldownSeconds: 75
   energyOnKill: 0.1
   startEnergy: 1
---- !u!114 &-3669362864320708917
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
-  m_Name: Marksman's Dodge
-  m_EditorClassIdentifier: 
-  displayName: Marksman's Dodge
-  element: 1
-  cooldownSeconds: 30
-  energyOnKill: 0.03
-  startEnergy: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49,28 +32,11 @@ MonoBehaviour:
   guardianClass: 1
   className: Hunter
   element: 1
-  grenade: {fileID: 0}
-  melee: {fileID: 0}
-  classAbility: {fileID: 0}
-  super: {fileID: 0}
---- !u!114 &1228219697182976140
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
-  m_Name: Tripmine Grenade
-  m_EditorClassIdentifier: 
-  displayName: Tripmine Grenade
-  element: 1
-  cooldownSeconds: 60
-  energyOnKill: 0.05
-  startEnergy: 1
---- !u!114 &1413071687380986671
+  grenade: {fileID: 8661925457901164508}
+  melee: {fileID: -6416241370374868142}
+  classAbility: {fileID: 2848066959915277624}
+  super: {fileID: 46363527854338636}
+--- !u!114 &46363527854338636
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -87,3 +53,37 @@ MonoBehaviour:
   cooldownSeconds: 300
   energyOnKill: 0.15
   startEnergy: 0
+--- !u!114 &2848066959915277624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Marksman's Dodge
+  m_EditorClassIdentifier: 
+  displayName: Marksman's Dodge
+  element: 1
+  cooldownSeconds: 30
+  energyOnKill: 0.03
+  startEnergy: 1
+--- !u!114 &8661925457901164508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Tripmine Grenade
+  m_EditorClassIdentifier: 
+  displayName: Tripmine Grenade
+  element: 1
+  cooldownSeconds: 60
+  energyOnKill: 0.05
+  startEnergy: 1

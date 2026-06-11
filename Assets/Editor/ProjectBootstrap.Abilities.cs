@@ -33,7 +33,11 @@ namespace Density3.EditorTools
                 AddAbilitySubAsset(c.melee, c);
                 AddAbilitySubAsset(c.classAbility, c);
                 AddAbilitySubAsset(c.super, c);
-                AssetDatabase.ImportAsset(path);
+                // CreateAsset serialized the main object while its ability refs
+                // were still non-persistent (= null on disk). Now that they are
+                // sub-assets, re-save so the refs serialize as local fileIDs.
+                EditorUtility.SetDirty(c);
+                AssetDatabase.SaveAssets();
             }
         }
 

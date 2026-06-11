@@ -40,7 +40,14 @@ namespace Density3.Abilities
 
         private AbilityBase Attach(AbilityData data, AbilitySlot slot)
         {
-            if (data == null) return null;
+            if (data == null)
+            {
+                // A baked ClassData with a hole means a broken bake — say so
+                // instead of silently leaving the slot dead.
+                Debug.LogWarning("ClassLoadout: " + Active.className + " has no "
+                    + slot + " AbilityData — slot disabled.", this);
+                return null;
+            }
             var ability = CreateAbility(slot);
             ability.Bind(data);
             return ability;
