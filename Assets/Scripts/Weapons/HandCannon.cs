@@ -61,6 +61,32 @@ namespace Density3.Weapons
         /// end point — cosmetic layers (super shot visuals) hook here.</summary>
         public event System.Action<Vector3, Vector3> ShotFired;
 
+        private bool holstered;
+        public bool Holstered => holstered;
+
+        /// <summary>Holsters the weapon for fists-style supers: input, ADS,
+        /// and reload stop and the frame model hides. The caller owns
+        /// SpeedScale while holstered (ADS normally rewrites it per frame,
+        /// but the holstered early-out leaves it alone).</summary>
+        public void SetHolstered(bool value)
+        {
+            holstered = value;
+            reloading = false;
+            var vm = FrameViewmodel;
+            if (vm != null) vm.gameObject.SetActive(!value);
+            if (value)
+            {
+                adsBlend = 0f;
+                if (magnetism != null && magnetismAds)
+                {
+                    magnetismAds = false;
+                    magnetism.SetADS(false);
+                }
+                if (cam != null) cam.fieldOfView = baseFov;
+                if (player != null) player.SensitivityScale = 1f;
+            }
+        }
+
         /// <summary>Temporarily replaces the equipped weapon (supers). The
         /// previous weapon — and its exact mag state — returns on EndOverride.
         /// Reloading and frame swapping are suspended while active. An
@@ -150,6 +176,7 @@ namespace Density3.Weapons
         private void Update()
         {
             if (player == null || Current == null) return;
+            if (holstered) return; // a fists super owns the hands
 
             if (player.MovementLocked)
             {

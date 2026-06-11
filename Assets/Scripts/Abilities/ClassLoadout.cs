@@ -31,14 +31,14 @@ namespace Density3.Abilities
             slots.super = Attach(Active.super, AbilitySlot.Super);
 
             // Class movement identity: Warlocks glide, Hunters triple-jump
-            // (two air hops), Titans keep the strafe leap until their kit.
+            // (two air hops), Titans burn a jetpack (D2's lift).
             var pc = GetComponent<PlayerController>();
             if (pc != null)
             {
                 pc.jumpStyle =
                     Active.guardianClass == GuardianClass.Warlock ? JumpStyle.Glide :
                     Active.guardianClass == GuardianClass.Hunter ? JumpStyle.TripleJump :
-                    JumpStyle.StrafeJump;
+                    JumpStyle.Jetpack;
                 pc.airJumps = pc.jumpStyle == JumpStyle.TripleJump ? 2 : 1;
             }
         }
@@ -80,6 +80,16 @@ namespace Density3.Abilities
                     case AbilitySlot.Melee: return gameObject.AddComponent<ThrowingKnifeAbility>();
                     case AbilitySlot.ClassAbility: return gameObject.AddComponent<MarksmansDodgeAbility>();
                     case AbilitySlot.Super: return gameObject.AddComponent<GoldenGunAbility>();
+                }
+            }
+            if (Active.guardianClass == GuardianClass.Titan)
+            {
+                switch (slot)
+                {
+                    case AbilitySlot.Grenade: return gameObject.AddComponent<PulseGrenadeAbility>();
+                    case AbilitySlot.Melee: return gameObject.AddComponent<SeismicStrikeAbility>();
+                    case AbilitySlot.ClassAbility: return gameObject.AddComponent<BarricadeAbility>();
+                    case AbilitySlot.Super: return gameObject.AddComponent<FistsOfHavocAbility>();
                 }
             }
 

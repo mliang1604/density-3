@@ -30,6 +30,7 @@ namespace Density3.Core
         private static AudioClip abilityThrow;
         private static AudioClip abilityMelee;
         private static AudioClip superActivate;
+        private static AudioClip jetLoop;
 
         public static AudioClip DryFireClip { get { EnsureClips(); return dryFire; } }
         public static AudioClip ReloadStartClip { get { EnsureClips(); return reloadStart; } }
@@ -47,6 +48,7 @@ namespace Density3.Core
         public static AudioClip AbilityThrowClip { get { EnsureClips(); return abilityThrow; } }
         public static AudioClip AbilityMeleeClip { get { EnsureClips(); return abilityMelee; } }
         public static AudioClip SuperActivateClip { get { EnsureClips(); return superActivate; } }
+        public static AudioClip JetpackLoopClip { get { EnsureClips(); return jetLoop; } }
 
         public static AudioClip GunshotFor(float rpm)
         {
@@ -101,6 +103,9 @@ namespace Density3.Core
         private static AudioClip riftLoopFile;
         private static AudioClip glideStartFile;
         private static AudioClip glideLoopFile;
+        private static AudioClip arcZapFile;
+        private static AudioClip arcShockFile;
+        private static AudioClip arcLoopFile;
 
         public static AudioClip AbilityDetonateClip
         { get { EnsureFileClips(); EnsureClips(); return abilityDetonateFile != null ? abilityDetonateFile : boltImpact; } }
@@ -111,6 +116,11 @@ namespace Density3.Core
         public static AudioClip VortexLoopClip { get { EnsureFileClips(); return vortexLoopFile; } }
         public static AudioClip RiftLoopClip { get { EnsureFileClips(); return riftLoopFile; } }
         public static AudioClip GlideLoopClip { get { EnsureFileClips(); return glideLoopFile; } }
+        public static AudioClip ArcZapClip
+        { get { EnsureFileClips(); EnsureClips(); return arcZapFile != null ? arcZapFile : boltFire; } }
+        public static AudioClip ArcShockClip
+        { get { EnsureFileClips(); EnsureClips(); return arcShockFile != null ? arcShockFile : boltImpact; } }
+        public static AudioClip ArcLoopClip { get { EnsureFileClips(); return arcLoopFile; } }
 
         private static void EnsureFileClips()
         {
@@ -122,6 +132,9 @@ namespace Density3.Core
             riftLoopFile = Resources.Load<AudioClip>("SFX/RiftLoop");
             glideStartFile = Resources.Load<AudioClip>("SFX/GlideStart");
             glideLoopFile = Resources.Load<AudioClip>("SFX/GlideLoop");
+            arcZapFile = Resources.Load<AudioClip>("SFX/ArcZap");
+            arcShockFile = Resources.Load<AudioClip>("SFX/ArcShock");
+            arcLoopFile = Resources.Load<AudioClip>("SFX/ArcLoop");
         }
 
         /// <summary>Looping positioned source tied to the host's lifetime
@@ -214,6 +227,36 @@ namespace Density3.Core
             abilityThrow = BuildWhoosh("sfx_ability_throw", 0.25f, 0.75f);
             abilityMelee = BuildWhoosh("sfx_ability_melee", 0.16f, 0.95f);
             superActivate = BuildSwell("sfx_super_activate", 1.2f, 0.9f);
+            jetLoop = BuildJetThrust("sfx_jet_loop", 1.6f, 0.8f);
+        }
+
+        /// <summary>Constant filtered-noise thrust bed for the Titan jetpack —
+        /// built to loop: flat envelope with a slight flutter, tiny edge fades
+        /// to hide the seam.</summary>
+        private static AudioClip BuildJetThrust(string name, float duration, float gain)
+        {
+            int n = (int)(SampleRate * duration);
+            var data = new float[n];
+            var rng = new System.Random(name.GetHashCode());
+            float body = 0f, rumble = 0f;
+            float aBody = Alpha(900f), aRumble = Alpha(180f);
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / SampleRate;
+                float white = Rand(rng);
+                body += (white - body) * aBody;
+                rumble += (white - rumble) * aRumble;
+                float flutter = 1f + 0.12f * Mathf.Sin(2f * Mathf.PI * 27f * t)
+                                       * Mathf.Sin(2f * Mathf.PI * 6.3f * t);
+                data[i] = SoftClip((body * 0.7f + rumble * 0.9f) * flutter * gain);
+            }
+            int fade = (int)(0.01f * SampleRate);
+            for (int i = 0; i < fade; i++)
+            {
+                data[i] *= (float)i / fade;
+                data[n - 1 - i] *= (float)i / fade;
+            }
+            return MakeClip(name, data);
         }
 
         /// <summary>

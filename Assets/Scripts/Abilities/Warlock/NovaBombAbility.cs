@@ -24,6 +24,7 @@ namespace Density3.Abilities
         [Tooltip("Only enemies within this angle of the throw vector are tracked.")]
         public float trackingConeDegrees = 35f;
         public float trackingTurnRate = 180f; // deg/sec — seeks hard
+        public float killSuppressWindowSeconds = 10f; // flight + blast + vortex
 
         private PlayerController player;
 
@@ -35,6 +36,13 @@ namespace Density3.Abilities
 
         protected override void OnActivate()
         {
+            // Kills in the bomb's window (flight, blast, vortex) must not
+            // recharge the super. Nova is instant, so the suppression is a
+            // timed window rather than an active state.
+            suppressKillEnergy = true;
+            CancelInvoke(nameof(EndKillSuppression));
+            Invoke(nameof(EndKillSuppression), killSuppressWindowSeconds);
+
             SFX.Play2D(SFX.SuperActivateClip, 0.9f);
 
             Transform cam = player != null && player.playerCamera != null
@@ -65,6 +73,8 @@ namespace Density3.Abilities
             var hud = FindFirstObjectByType<HUDController>();
             if (hud != null) hud.PulseVignette(ElementPalette.Base(Element.Void), 0.45f);
         }
+
+        private void EndKillSuppression() => suppressKillEnergy = false;
 
         private void Detonate(Vector3 at)
         {

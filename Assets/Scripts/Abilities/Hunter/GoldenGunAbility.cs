@@ -48,6 +48,7 @@ namespace Density3.Abilities
             weapon.BeginOverride(goldenData, rounds, goldenViewmodel);
             weapon.TargetKilled += OnGunKill;
             weapon.ShotFired += OnGoldenShot;
+            suppressKillEnergy = true; // golden kills must not refund the super
             active = true;
             endTime = Time.time + durationSeconds;
 
@@ -111,6 +112,7 @@ namespace Density3.Abilities
         private void EndGoldenGun()
         {
             active = false;
+            suppressKillEnergy = false;
             weapon.TargetKilled -= OnGunKill;
             weapon.ShotFired -= OnGoldenShot;
             if (weapon.IsOverridden) weapon.EndOverride(); // re-shows the frame model

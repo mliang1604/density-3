@@ -5,12 +5,13 @@ using Density3.Core;
 namespace Density3.Player
 {
     /// <summary>Class movement identity, applied by ClassLoadout: Warlocks
-    /// glide; the strafe/triple jump styles are kept for the Hunter kit.</summary>
+    /// glide, Hunters triple-jump, Titans burn a jetpack.</summary>
     public enum JumpStyle
     {
         StrafeJump,
         TripleJump,
-        Glide
+        Glide,
+        Jetpack
     }
 
     /// <summary>
@@ -62,6 +63,14 @@ namespace Density3.Player
         [Tooltip("Strafe Glide's signature: near-full air control while gliding.")]
         [Range(0f, 1f)] public float glideAirControl = 1f;
 
+        [Header("Jetpack (Titan)")]
+        [Tooltip("Total burn per landing; toggling mid-air saves the rest for later.")]
+        public float jetpackBurnSeconds = 1.1f;
+        public float jetpackUpAccel = 34f;     // beats gravity hard: real climb
+        public float jetpackMaxUpSpeed = 9f;
+        public float jetpackForwardAccel = 12f;
+        public float jetpackMaxLateralSpeed = 16f;
+
         [Header("Look")]
         public float mouseSensitivity = 2.2f;
         public float maxPitch = 89f;
@@ -92,8 +101,10 @@ namespace Density3.Player
         private Vector3 overrideVelocity;
         private float overrideTimer;
         private bool isGliding;
-        private AudioSource glideLoop;
-        private bool wasGliding;
+        private float jetpackFuel;
+        private bool jetpackBurning;
+        private AudioSource airLoop;
+        private bool airLoopWasOn;
         private float crouchBlend;   // 0 = standing, 1 = fully crouched
         private float standHeight;
         private float standCenterY;
@@ -102,6 +113,7 @@ namespace Density3.Player
         public bool IsCrouching => isCrouching;
         public bool IsSliding => isSliding;
         public bool IsGliding => isGliding;
+        public bool IsGrounded => controller != null && controller.isGrounded;
         public bool MovementOverridden => overrideTimer > 0f;
 
         private void Awake()
@@ -133,24 +145,32 @@ namespace Density3.Player
 
         private void LateUpdate()
         {
-            // The glide wind tracks the gliding state on its edges, no matter
-            // where the glide ended (toggle, landing, respawn). Lives here
-            // because Update early-returns while the cursor is free or
-            // movement is locked, and the loop must still stop then.
-            if (isGliding == wasGliding) return;
-            wasGliding = isGliding;
-            if (isGliding)
+            // Air-movement audio (glide wind / jetpack thrust) tracks its
+            // state on the edges, no matter where it ended (toggle, landing,
+            // fuel-out, respawn). Lives here because Update early-returns
+            // while the cursor is free or movement is locked, and the loop
+            // must still stop then.
+            bool on = isGliding || jetpackBurning;
+            if (on == airLoopWasOn) return;
+            airLoopWasOn = on;
+
+            if (on)
             {
-                if (glideLoop == null)
+                var clip = jumpStyle == JumpStyle.Jetpack ? SFX.JetpackLoopClip : SFX.GlideLoopClip;
+                if (airLoop == null)
                 {
-                    glideLoop = SFX.AttachLoop(gameObject, SFX.GlideLoopClip, 0.35f);
-                    if (glideLoop != null) glideLoop.spatialBlend = 0f; // the player's own ears
+                    airLoop = SFX.AttachLoop(gameObject, clip, jumpStyle == JumpStyle.Jetpack ? 0.45f : 0.35f);
+                    if (airLoop != null) airLoop.spatialBlend = 0f; // the player's own ears
                 }
-                else glideLoop.Play();
+                else
+                {
+                    airLoop.clip = clip;
+                    airLoop.Play();
+                }
             }
-            else if (glideLoop != null)
+            else if (airLoop != null)
             {
-                glideLoop.Stop();
+                airLoop.Stop();
             }
         }
 
@@ -186,6 +206,7 @@ namespace Density3.Player
             isSliding = false;
             isCrouching = false;
             isGliding = false;
+            jetpackBurning = false;
             velocity = Vector3.zero;
             overrideTimer = 0f;
         }
@@ -224,6 +245,8 @@ namespace Density3.Player
             {
                 airJumpsLeft = airJumps;
                 isGliding = false;
+                jetpackBurning = false;
+                jetpackFuel = jetpackBurnSeconds; // landing refuels
                 if (velocity.y < 0f) velocity.y = -2f;
             }
 
@@ -288,6 +311,17 @@ namespace Density3.Player
                         SFX.Play2D(SFX.GlideStartClip, 0.25f);
                     }
                 }
+                else if (jumpStyle == JumpStyle.Jetpack)
+                {
+                    // Titan jetpack: toggle the burn; unspent fuel keeps
+                    // across toggles and refills on landing.
+                    if (jetpackBurning) jetpackBurning = false;
+                    else if (jetpackFuel > 0f)
+                    {
+                        jetpackBurning = true;
+                        SFX.Play2D(SFX.GlideStartClip, 0.3f, 1.35f); // ignition huff
+                    }
+                }
                 else if (airJumpsLeft > 0)
                 {
                     airJumpsLeft--;
@@ -309,6 +343,29 @@ namespace Density3.Player
                     velocity.z = boosted.z;
 
                     SFX.Play2D(SFX.StrafeJumpClip, 0.5f, Random.Range(0.95f, 1.05f));
+                }
+            }
+
+            // Jetpack thrust: a real climb plus forward momentum — the burn
+            // buys height and ground covered, where the glide only buys time.
+            if (jetpackBurning)
+            {
+                jetpackFuel -= Time.deltaTime;
+                if (jetpackFuel <= 0f) jetpackBurning = false;
+                else
+                {
+                    velocity.y = Mathf.Min(velocity.y + jetpackUpAccel * Time.deltaTime, jetpackMaxUpSpeed);
+                    Vector3 thrust = transform.forward;
+                    thrust.y = 0f;
+                    if (thrust.sqrMagnitude > 0.01f)
+                    {
+                        Vector3 lateral = new Vector3(velocity.x, 0f, velocity.z)
+                            + thrust.normalized * (jetpackForwardAccel * Time.deltaTime);
+                        if (lateral.magnitude > jetpackMaxLateralSpeed)
+                            lateral = lateral.normalized * jetpackMaxLateralSpeed;
+                        velocity.x = lateral.x;
+                        velocity.z = lateral.z;
+                    }
                 }
             }
 

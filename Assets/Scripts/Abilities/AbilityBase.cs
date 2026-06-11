@@ -75,9 +75,13 @@ namespace Density3.Abilities
         /// <summary>The ability's effect. Energy is already spent when this runs.</summary>
         protected abstract void OnActivate();
 
+        /// <summary>Set by supers while they're in effect: kills made by a
+        /// super must not recharge that super — too self-sustaining.</summary>
+        protected bool suppressKillEnergy;
+
         private void OnEnemyKilled()
         {
-            if (data != null) SetEnergy(Energy + data.energyOnKill);
+            if (data != null && !suppressKillEnergy) SetEnergy(Energy + data.energyOnKill);
         }
 
         private void SetEnergy(float value)

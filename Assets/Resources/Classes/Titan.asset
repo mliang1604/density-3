@@ -1,76 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cdd166cbc65093e5328067363aeb7af, type: 3}
-  m_Name: Titan
-  m_EditorClassIdentifier: 
-  guardianClass: 2
-  className: Titan
-  element: 2
-  grenade: {fileID: 6268366848965420601}
-  melee: {fileID: 6740857294967267722}
-  classAbility: {fileID: 2368457129356012455}
-  super: {fileID: 7435841726634355452}
---- !u!114 &2368457129356012455
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
-  m_Name: Towering Barricade
-  m_EditorClassIdentifier: 
-  displayName: Towering Barricade
-  element: 2
-  cooldownSeconds: 45
-  energyOnKill: 0.04
-  startEnergy: 1
---- !u!114 &6268366848965420601
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
-  m_Name: Pulse Grenade
-  m_EditorClassIdentifier: 
-  displayName: Pulse Grenade
-  element: 2
-  cooldownSeconds: 60
-  energyOnKill: 0.05
-  startEnergy: 1
---- !u!114 &6740857294967267722
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
-  m_Name: Seismic Strike
-  m_EditorClassIdentifier: 
-  displayName: Seismic Strike
-  element: 2
-  cooldownSeconds: 75
-  energyOnKill: 0.1
-  startEnergy: 1
---- !u!114 &7435841726634355452
+--- !u!114 &-1665149090436574657
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -87,3 +17,73 @@ MonoBehaviour:
   cooldownSeconds: 300
   energyOnKill: 0.15
   startEnergy: 0
+--- !u!114 &-964093031546482751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Pulse Grenade
+  m_EditorClassIdentifier: 
+  displayName: Pulse Grenade
+  element: 2
+  cooldownSeconds: 45
+  energyOnKill: 0.05
+  startEnergy: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cdd166cbc65093e5328067363aeb7af, type: 3}
+  m_Name: Titan
+  m_EditorClassIdentifier: 
+  guardianClass: 2
+  className: Titan
+  element: 2
+  grenade: {fileID: -964093031546482751}
+  melee: {fileID: 947857242963780977}
+  classAbility: {fileID: 3918706743579514230}
+  super: {fileID: -1665149090436574657}
+--- !u!114 &947857242963780977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Seismic Strike
+  m_EditorClassIdentifier: 
+  displayName: Seismic Strike
+  element: 2
+  cooldownSeconds: 25
+  energyOnKill: 0.1
+  startEnergy: 1
+--- !u!114 &3918706743579514230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Towering Barricade
+  m_EditorClassIdentifier: 
+  displayName: Towering Barricade
+  element: 2
+  cooldownSeconds: 40
+  energyOnKill: 0.04
+  startEnergy: 1
