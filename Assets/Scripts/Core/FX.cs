@@ -28,25 +28,69 @@ namespace Density3.Core
         }
 
         private static Material boltMaterial;
+        private static readonly Material[] elementBoltMaterials = new Material[3];
 
         /// <summary>Glowing purple energy-bolt body: visuals only, no collider —
         /// the caller adds flight behavior.</summary>
         public static GameObject SpawnBolt(Vector3 position)
         {
+            if (boltMaterial == null)
+                boltMaterial = MakeEmissiveMaterial(new Color(0.6f, 0.2f, 1f), new Color(0.55f, 0.2f, 1f) * 2.5f);
+            return SpawnBolt(position, "EnemyBolt", boltMaterial);
+        }
+
+        /// <summary>Element-tinted bolt body for ability projectiles.</summary>
+        public static GameObject SpawnBolt(Vector3 position, Element element)
+        {
+            int i = (int)element;
+            if (elementBoltMaterials[i] == null)
+                elementBoltMaterials[i] = MakeEmissiveMaterial(
+                    ElementPalette.Base(element), ElementPalette.Emission(element));
+            return SpawnBolt(position, "ElementBolt", elementBoltMaterials[i]);
+        }
+
+        private static GameObject SpawnBolt(Vector3 position, string name, Material mat)
+        {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = "EnemyBolt";
+            go.name = name;
             Object.Destroy(go.GetComponent<Collider>());
             go.transform.position = position;
             go.transform.localScale = Vector3.one * 0.22f;
-            if (boltMaterial == null)
-            {
-                boltMaterial = new Material(Shader.Find("Standard"));
-                boltMaterial.color = new Color(0.6f, 0.2f, 1f);
-                boltMaterial.EnableKeyword("_EMISSION");
-                boltMaterial.SetColor("_EmissionColor", new Color(0.55f, 0.2f, 1f) * 2.5f);
-            }
-            go.GetComponent<Renderer>().material = boltMaterial;
+            go.GetComponent<Renderer>().material = mat;
             return go;
+        }
+
+        private static Material MakeEmissiveMaterial(Color color, Color emission)
+        {
+            var m = new Material(Shader.Find("Standard")) { color = color };
+            m.EnableKeyword("_EMISSION");
+            m.SetColor("_EmissionColor", emission);
+            return m;
+        }
+
+        /// <summary>Element-tinted beam (tripmine lasers, sniper telegraphs).
+        /// Returns the LineRenderer so callers can move it; seconds &lt;= 0 makes
+        /// it persistent and caller-owned.</summary>
+        public static LineRenderer SpawnBeam(Vector3 start, Vector3 end, Element element,
+            float width = 0.04f, float seconds = 0f)
+        {
+            var go = new GameObject("Beam");
+            var lr = go.AddComponent<LineRenderer>();
+            if (lineMaterial == null) lineMaterial = new Material(Shader.Find("Sprites/Default"));
+            lr.material = lineMaterial;
+            lr.positionCount = 2;
+            lr.SetPosition(0, start);
+            lr.SetPosition(1, end);
+            lr.startWidth = width;
+            lr.endWidth = width;
+            Color c = ElementPalette.Base(element);
+            c.a = 0.9f;
+            lr.startColor = c;
+            lr.endColor = c;
+            lr.shadowCastingMode = ShadowCastingMode.Off;
+            lr.receiveShadows = false;
+            if (seconds > 0f) Object.Destroy(go, seconds);
+            return lr;
         }
 
         public static void SpawnImpact(Vector3 point, Vector3 normal)
@@ -109,17 +153,44 @@ namespace Density3.Core
         /// soft, rising, billowing cloud of glowing arc-blue gas.</summary>
         public static void SpawnEtherBurst(Vector3 pos)
         {
-            var ether = new Color(0.4f, 0.8f, 1f);
+            SpawnBurst(pos, new Color(0.4f, 0.8f, 1f), new Color(0.55f, 0.8f, 1f, 1f), new[]
+            {
+                new GradientColorKey(new Color(0.85f, 0.97f, 1f), 0f),
+                new GradientColorKey(new Color(0.4f, 0.8f, 1f), 0.4f),
+                new GradientColorKey(new Color(0.08f, 0.25f, 0.6f), 0.8f),
+                new GradientColorKey(Color.black, 1f)
+            }, 1f, 36);
+        }
 
-            var lightGO = new GameObject("EtherFlash");
+        /// <summary>Element-tinted ability burst (grenade detonations, melee and
+        /// super payoffs). scale grows the cloud and flash for bigger hits.</summary>
+        public static void SpawnElementBurst(Vector3 pos, Element element, float scale = 1f)
+        {
+            Color c = ElementPalette.Base(element);
+            SpawnBurst(pos, c, Color.Lerp(c, Color.white, 0.35f), new[]
+            {
+                new GradientColorKey(Color.Lerp(c, Color.white, 0.65f), 0f),
+                new GradientColorKey(c, 0.4f),
+                new GradientColorKey(c * 0.3f, 0.8f),
+                new GradientColorKey(Color.black, 1f)
+            }, scale, Mathf.RoundToInt(30f * Mathf.Max(1f, scale)));
+        }
+
+        /// <summary>Shared flash-plus-gas-cloud burst. Color identity comes in via
+        /// the light color, particle start color, and the over-lifetime gradient
+        /// (additive particles fade by going dark, so gradients end at black).</summary>
+        private static void SpawnBurst(Vector3 pos, Color lightColor, Color startColor,
+            GradientColorKey[] colorKeys, float scale, int particles)
+        {
+            var lightGO = new GameObject("BurstFlash");
             lightGO.transform.position = pos;
             var light = lightGO.AddComponent<Light>();
-            light.color = ether;
-            light.range = 7f;
+            light.color = lightColor;
+            light.range = 7f * scale;
             light.intensity = 7f;
             lightGO.AddComponent<EtherLight>();
 
-            var go = new GameObject("EtherBurst");
+            var go = new GameObject("Burst");
             go.transform.position = pos;
             var ps = go.AddComponent<ParticleSystem>();
 
@@ -128,21 +199,21 @@ namespace Density3.Core
             main.loop = false;
             main.playOnAwake = false;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 0.95f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f, 2.2f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.22f, 0.45f);
-            main.startColor = new Color(0.55f, 0.8f, 1f, 1f);
-            main.gravityModifier = -0.06f; // ether drifts upward
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f * scale, 2.2f * scale);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.22f * scale, 0.45f * scale);
+            main.startColor = startColor;
+            main.gravityModifier = -0.06f; // the gas drifts upward
             main.simulationSpace = ParticleSystemSimulationSpace.World;
-            main.maxParticles = 80;
+            main.maxParticles = Mathf.Max(80, particles * 2);
             main.stopAction = ParticleSystemStopAction.Destroy;
 
             var emission = ps.emission;
             emission.rateOverTime = 0f;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)36) });
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)particles) });
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Sphere;
-            shape.radius = 0.1f;
+            shape.radius = 0.1f * scale;
 
             var sizeOverLife = ps.sizeOverLifetime;
             sizeOverLife.enabled = true;
@@ -152,18 +223,10 @@ namespace Density3.Core
             grow.AddKey(1f, 1.7f);
             sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, grow);
 
-            // Additive particles fade by going dark, so the gradient ends at black.
             var colorOverLife = ps.colorOverLifetime;
             colorOverLife.enabled = true;
             var grad = new Gradient();
-            grad.SetKeys(
-                new[]
-                {
-                    new GradientColorKey(new Color(0.85f, 0.97f, 1f), 0f),
-                    new GradientColorKey(new Color(0.4f, 0.8f, 1f), 0.4f),
-                    new GradientColorKey(new Color(0.08f, 0.25f, 0.6f), 0.8f),
-                    new GradientColorKey(Color.black, 1f)
-                },
+            grad.SetKeys(colorKeys,
                 new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) });
             colorOverLife.color = new ParticleSystem.MinMaxGradient(grad);
 

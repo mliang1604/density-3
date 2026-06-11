@@ -26,6 +26,10 @@ namespace Density3.Core
         private static AudioClip enemyDeath;
         private static AudioClip etherBurst;
         private static AudioClip slide;
+        private static AudioClip abilityReady;
+        private static AudioClip abilityThrow;
+        private static AudioClip abilityMelee;
+        private static AudioClip superActivate;
 
         public static AudioClip DryFireClip { get { EnsureClips(); return dryFire; } }
         public static AudioClip ReloadStartClip { get { EnsureClips(); return reloadStart; } }
@@ -39,6 +43,10 @@ namespace Density3.Core
         public static AudioClip EnemyDeathClip { get { EnsureClips(); return enemyDeath; } }
         public static AudioClip EtherBurstClip { get { EnsureClips(); return etherBurst; } }
         public static AudioClip SlideClip { get { EnsureClips(); return slide; } }
+        public static AudioClip AbilityReadyClip { get { EnsureClips(); return abilityReady; } }
+        public static AudioClip AbilityThrowClip { get { EnsureClips(); return abilityThrow; } }
+        public static AudioClip AbilityMeleeClip { get { EnsureClips(); return abilityMelee; } }
+        public static AudioClip SuperActivateClip { get { EnsureClips(); return superActivate; } }
 
         public static AudioClip GunshotFor(float rpm)
         {
@@ -148,6 +156,10 @@ namespace Density3.Core
             enemyDeath = BuildDeathPop("sfx_enemy_death", 0.35f, 0.9f);
             etherBurst = BuildEther("sfx_ether_burst", 1.5f, 1.05f);
             slide = BuildWhoosh("sfx_slide", 0.6f, 0.7f);
+            abilityReady = BuildDing("sfx_ability_ready", 990f, 1485f, 0.22f, 0.07f, 0.5f);
+            abilityThrow = BuildWhoosh("sfx_ability_throw", 0.25f, 0.75f);
+            abilityMelee = BuildWhoosh("sfx_ability_melee", 0.16f, 0.95f);
+            superActivate = BuildSwell("sfx_super_activate", 1.2f, 0.9f);
         }
 
         /// <summary>
@@ -362,6 +374,29 @@ namespace Density3.Core
                 float tone = Mathf.Sin(phase) * Mathf.Exp(-t / 0.12f);
                 float noise = Rand(rng) * Mathf.Exp(-t / 0.05f) * 0.5f;
                 data[i] = SoftClip((tone + noise) * gain);
+            }
+            return MakeClip(name, data);
+        }
+
+        /// <summary>Rising two-tone swell over a building noise bed — the super
+        /// activation moment. Ramps for most of the clip, then releases.</summary>
+        private static AudioClip BuildSwell(string name, float duration, float gain)
+        {
+            int n = (int)(SampleRate * duration);
+            var data = new float[n];
+            var rng = new System.Random(name.GetHashCode());
+            float p1 = 0f, p2 = 0f, lp = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t01 = (float)i / n;
+                float f = Mathf.Lerp(160f, 660f, t01 * t01);
+                p1 += 2f * Mathf.PI * f / SampleRate;
+                p2 += 2f * Mathf.PI * f * 1.502f / SampleRate; // slightly detuned fifth
+                float ramp = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t01 / 0.85f));
+                float release = 1f - Mathf.SmoothStep(0.85f, 1f, t01);
+                lp += (Rand(rng) - lp) * 0.06f;
+                float s = Mathf.Sin(p1) * 0.5f + Mathf.Sin(p2) * 0.25f + lp * 0.8f * t01;
+                data[i] = SoftClip(s * ramp * release * gain);
             }
             return MakeClip(name, data);
         }
