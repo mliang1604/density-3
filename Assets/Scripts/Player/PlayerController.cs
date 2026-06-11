@@ -285,7 +285,7 @@ namespace Density3.Player
                     if (isGliding)
                     {
                         if (velocity.y < 0f) velocity.y *= 0.3f; // catch the fall
-                        SFX.Play2D(SFX.GlideStartClip, 0.45f);
+                        SFX.Play2D(SFX.GlideStartClip, 0.25f);
                     }
                 }
                 else if (airJumpsLeft > 0)

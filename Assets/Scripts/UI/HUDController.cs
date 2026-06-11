@@ -51,6 +51,7 @@ namespace Density3.UI
         private AbilityBase[] boundAbilities;
         private Action<bool>[] readyHandlers;
         private Color vignetteBaseColor = new Color(0.7f, 0f, 0f);
+        private Sprite iconRingSprite;
 
         private void Start()
         {
@@ -327,14 +328,14 @@ namespace Density3.UI
         private void MakeAbilityMeters(Transform root)
         {
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            superFill = MakeAbilityIcon(root, "Super", "Q", new Vector2(72f, 72f), SuperSize, 45f, 18);
-            grenadeFill = MakeAbilityIcon(root, "Grenade", "G", new Vector2(140f, 72f), AbilitySize, 0f, 14);
-            meleeFill = MakeAbilityIcon(root, "Melee", "V", new Vector2(184f, 72f), AbilitySize, 0f, 14);
-            classFill = MakeAbilityIcon(root, "Class", "F", new Vector2(228f, 72f), AbilitySize, 0f, 14);
+            superFill = MakeAbilityIcon(root, "Super", "Q", new Vector2(72f, 78f), SuperSize, 45f, 0);
+            grenadeFill = MakeAbilityIcon(root, "Grenade", "G", new Vector2(140f, 78f), AbilitySize, 0f, 1);
+            meleeFill = MakeAbilityIcon(root, "Melee", "V", new Vector2(184f, 78f), AbilitySize, 0f, 2);
+            classFill = MakeAbilityIcon(root, "Class", "F", new Vector2(228f, 78f), AbilitySize, 0f, 3);
         }
 
-        private Image MakeAbilityIcon(Transform root, string name, string glyph, Vector2 center,
-            float size, float rotation, int glyphSize)
+        private Image MakeAbilityIcon(Transform root, string name, string key, Vector2 center,
+            float size, float rotation, int glyphSlot)
         {
             var bg = MakeImage(root, name + "BG", new Color(0f, 0f, 0f, 0.55f));
             var bgRect = bg.rectTransform;
@@ -354,17 +355,76 @@ namespace Density3.UI
             fr.anchoredPosition = new Vector2(0f, 2f);
             fr.sizeDelta = new Vector2(-4f, 0f);
 
-            // Key bind as the glyph, counter-rotated to stay upright.
-            var glyphText = MakeText(bgRect, name + "Glyph", glyphSize, TextAnchor.MiddleCenter);
-            glyphText.text = glyph;
-            glyphText.color = new Color(1f, 1f, 1f, 0.9f);
-            var gr = glyphText.rectTransform;
+            // Key bind sits below the icon (clear of the diamond's point).
+            float half = rotation != 0f ? size * 0.7071f : size * 0.5f;
+            var keyLabel = MakeText(root, name + "Key", 11, TextAnchor.MiddleCenter);
+            keyLabel.text = key;
+            keyLabel.color = new Color(1f, 1f, 1f, 0.55f);
+            var kr = keyLabel.rectTransform;
+            kr.anchorMin = kr.anchorMax = new Vector2(0f, 0f);
+            kr.pivot = new Vector2(0.5f, 0.5f);
+            kr.anchoredPosition = center + new Vector2(0f, -(half + 9f));
+            kr.sizeDelta = new Vector2(40f, 14f);
+
+            // Slot glyph, counter-rotated upright, drawn over the fill.
+            var glyphGO = new GameObject(name + "Icon", typeof(RectTransform));
+            var gr = glyphGO.GetComponent<RectTransform>();
+            gr.SetParent(bgRect, false);
             gr.anchorMin = Vector2.zero;
             gr.anchorMax = Vector2.one;
             gr.offsetMin = Vector2.zero;
             gr.offsetMax = Vector2.zero;
             gr.localRotation = Quaternion.Euler(0f, 0f, -rotation);
+            BuildSlotGlyph(gr, glyphSlot);
             return fill;
+        }
+
+        /// <summary>Tiny procedural slot icons — no art assets, same philosophy
+        /// as the crosshair sprite: a nova burst, a grenade orb, a melee slash,
+        /// a rift ellipse.</summary>
+        private void BuildSlotGlyph(RectTransform parent, int slot)
+        {
+            if (iconRingSprite == null) iconRingSprite = MakeRingSprite(64, 26f, 4f);
+            var c = new Color(1f, 1f, 1f, 0.92f);
+            switch (slot)
+            {
+                case 0: // super: a nova burst
+                    GlyphBar(parent, new Vector2(26f, 2.5f), 0f, c);
+                    GlyphBar(parent, new Vector2(26f, 2.5f), 60f, c);
+                    GlyphBar(parent, new Vector2(26f, 2.5f), 120f, c);
+                    break;
+                case 1: // grenade: an orb
+                    GlyphRing(parent, new Vector2(16f, 16f), c);
+                    var dot = MakeImage(parent, "Dot", c);
+                    SetCenter(dot.rectTransform, Vector2.zero, new Vector2(5f, 5f));
+                    break;
+                case 2: // melee: claw slashes
+                    GlyphBar(parent, new Vector2(18f, 2.5f), 45f, c, new Vector2(-2.5f, 2.5f));
+                    GlyphBar(parent, new Vector2(18f, 2.5f), 45f, c, new Vector2(2.5f, -2.5f));
+                    break;
+                case 3: // class ability: a rift ellipse
+                    var ring = GlyphRing(parent, new Vector2(20f, 20f), c);
+                    ring.rectTransform.localScale = new Vector3(1f, 0.5f, 1f);
+                    break;
+            }
+        }
+
+        private void GlyphBar(RectTransform parent, Vector2 size, float rot, Color c, Vector2 pos = default)
+        {
+            var img = MakeImage(parent, "Bar", c);
+            var r = img.rectTransform;
+            r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
+            r.anchoredPosition = pos;
+            r.sizeDelta = size;
+            r.localRotation = Quaternion.Euler(0f, 0f, rot);
+        }
+
+        private Image GlyphRing(RectTransform parent, Vector2 size, Color c)
+        {
+            var img = MakeImage(parent, "Ring", c);
+            img.sprite = iconRingSprite;
+            SetCenter(img.rectTransform, Vector2.zero, size);
+            return img;
         }
 
         /// <summary>Top-left FPS readout, mirroring the kill counter's placement.
