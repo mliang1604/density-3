@@ -143,6 +143,7 @@ namespace Density3.UI
                 hintText.text = HintText(
                     playerController.jumpStyle == JumpStyle.Glide ? "glide"
                     : playerController.jumpStyle == JumpStyle.TripleJump ? "triple jump"
+                    : playerController.jumpStyle == JumpStyle.Jetpack ? "jetpack"
                     : "strafe jump");
             }
         }

@@ -31,15 +31,14 @@ namespace Density3.Abilities
             slots.super = Attach(Active.super, AbilitySlot.Super);
 
             // Class movement identity: Warlocks glide, Hunters triple-jump
-            // (two air hops), Titans take the strafe leap — one big boosted
-            // jump, the closest cousin of D2's lift.
+            // (two air hops), Titans burn a jetpack (D2's lift).
             var pc = GetComponent<PlayerController>();
             if (pc != null)
             {
                 pc.jumpStyle =
                     Active.guardianClass == GuardianClass.Warlock ? JumpStyle.Glide :
                     Active.guardianClass == GuardianClass.Hunter ? JumpStyle.TripleJump :
-                    JumpStyle.StrafeJump;
+                    JumpStyle.Jetpack;
                 pc.airJumps = pc.jumpStyle == JumpStyle.TripleJump ? 2 : 1;
             }
         }
