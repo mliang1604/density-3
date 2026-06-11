@@ -17,10 +17,13 @@ namespace Density3.Abilities
         public float castLockSeconds = 0.4f;
         public float projectileSpeed = 14f;
         public float damage = 400f;
-        public float blastRadius = 6f;
-        public float vortexRadius = 4f;
+        public float blastRadius = 12f;
+        public float vortexRadius = 8f;
         public float vortexDamagePerTick = 25f;
         public float vortexSeconds = 6f;
+        [Tooltip("Only enemies within this angle of the throw vector are tracked.")]
+        public float trackingConeDegrees = 25f;
+        public float trackingTurnRate = 60f; // deg/sec
 
         private PlayerController player;
         private Health health;
@@ -59,12 +62,33 @@ namespace Density3.Abilities
             proj.gravity = -2f; // heavy float, mostly straight
             proj.fuseSeconds = 6f;
             proj.detonateOnImpact = true;
+            proj.homingTarget = AcquireTarget(cam.position, cam.forward);
+            proj.homingDegreesPerSecond = trackingTurnRate;
             proj.Detonated += Detonate;
             proj.Launch(cam.forward * projectileSpeed);
 
             if (player != null) player.AddRecoil(6f, 1.5f);
             var hud = FindFirstObjectByType<HUDController>();
             if (hud != null) hud.PulseVignette(ElementPalette.Base(Element.Void), 0.45f);
+        }
+
+        /// <summary>The living target nearest the throw vector (smallest angle
+        /// off it, within the tracking cone) — what the bomb curves toward.</summary>
+        private Transform AcquireTarget(Vector3 origin, Vector3 dir)
+        {
+            Transform best = null;
+            float bestAngle = trackingConeDegrees;
+            foreach (var h in FindObjectsByType<Health>(FindObjectsSortMode.None))
+            {
+                if (h.IsDead || h.gameObject == gameObject) continue;
+                float angle = Vector3.Angle(dir, h.transform.position + Vector3.up - origin);
+                if (angle < bestAngle)
+                {
+                    bestAngle = angle;
+                    best = h.transform;
+                }
+            }
+            return best;
         }
 
         private void Detonate(Vector3 at)

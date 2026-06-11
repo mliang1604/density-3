@@ -14,8 +14,9 @@ namespace Density3.Abilities
     /// </summary>
     public class EnergyDrainMelee : AbilityBase
     {
-        public float range = 3f;
-        public float castRadius = 0.6f; // forgiving palm-sized spherecast
+        public float range = 3.5f;
+        public float castRadius = 1f; // a generous palm — forgiveness over precision
+        public float waveSpeed = 30f;
         public float damage = 80f;
         public float critMultiplier = 1.4f;
         [Range(0f, 1f)] public float grenadeRefundOnHit = 0.25f;
@@ -35,6 +36,18 @@ namespace Density3.Abilities
             SFX.Play2D(SFX.AbilityMeleeClip, 0.7f);
             Transform cam = player != null && player.playerCamera != null
                 ? player.playerCamera.transform : transform;
+
+            // Visible void wave flying the palm's path. Purely cosmetic — the
+            // damage is the instant spherecast below, so hits stay reliable;
+            // the wave self-destructs at max range or on the first surface.
+            var wave = FX.SpawnBolt(cam.position + cam.forward * 0.4f, Element.Void);
+            wave.name = "VoidPalmWave";
+            wave.transform.localScale = Vector3.one * 0.35f;
+            var waveProj = wave.AddComponent<ThrownAbilityProjectile>();
+            waveProj.gravity = 0f;
+            waveProj.detonateOnImpact = true;
+            waveProj.fuseSeconds = range / waveSpeed;
+            waveProj.Launch(cam.forward * waveSpeed);
 
             if (!Physics.SphereCast(cam.position, castRadius, cam.forward, out RaycastHit hit,
                     range, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))

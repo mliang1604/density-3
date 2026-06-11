@@ -19,6 +19,9 @@ namespace Density3.Abilities
         public float fuseSeconds = 2f;
         public bool stickToSurface;
         public bool detonateOnImpact = true;
+        [Tooltip("Optional in-flight steering toward homingTarget, degrees/second. 0 = ballistic.")]
+        public float homingDegreesPerSecond;
+        public Transform homingTarget;
 
         /// <summary>Hit point and surface normal, when stickToSurface lands.</summary>
         public event Action<Vector3, Vector3> Stuck;
@@ -52,6 +55,13 @@ namespace Density3.Abilities
                 }
             }
             if (stuck) return;
+
+            if (homingTarget != null && homingDegreesPerSecond > 0f)
+            {
+                Vector3 toTarget = homingTarget.position + Vector3.up - transform.position;
+                vel = Vector3.RotateTowards(vel, toTarget.normalized * vel.magnitude,
+                    homingDegreesPerSecond * Mathf.Deg2Rad * Time.deltaTime, 0f);
+            }
 
             vel.y += gravity * Time.deltaTime;
             float step = vel.magnitude * Time.deltaTime;

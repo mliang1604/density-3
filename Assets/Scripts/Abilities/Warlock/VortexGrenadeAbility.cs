@@ -12,7 +12,7 @@ namespace Density3.Abilities
     /// </summary>
     public class VortexGrenadeAbility : AbilityBase
     {
-        public float throwSpeed = 18f;
+        public float throwSpeed = 28f; // fast and flat enough to aim directly
         public float detonateDamage = 50f;
         public float vortexDamagePerTick = 12f;
         public float vortexRadius = 3f;
