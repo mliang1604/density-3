@@ -1,12 +1,12 @@
 using UnityEngine;
 
-namespace FableFPS.Weapons
+namespace Density3.Weapons
 {
     /// <summary>
     /// Hand cannon archetype definition (Destiny-style frame).
     /// Defaults model a 140 RPM Adaptive Frame.
     /// </summary>
-    [CreateAssetMenu(menuName = "FableFPS/Weapon Data", fileName = "NewWeaponData")]
+    [CreateAssetMenu(menuName = "Density3/Weapon Data", fileName = "NewWeaponData")]
     public class WeaponData : ScriptableObject
     {
         [Header("Identity")]

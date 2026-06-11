@@ -1,7 +1,7 @@
 using UnityEngine;
-using FableFPS.Core;
+using Density3.Core;
 
-namespace FableFPS.Weapons
+namespace Density3.Weapons
 {
     /// <summary>
     /// Destiny 2-style bullet magnetism (per BulletMagnetism_Spec.md): an invisible

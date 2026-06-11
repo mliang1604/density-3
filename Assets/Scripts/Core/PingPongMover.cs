@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>Moves an object back and forth between two points (moving target).</summary>
     public class PingPongMover : MonoBehaviour

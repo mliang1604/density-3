@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace FableFPS.UI
+namespace Density3.UI
 {
     /// <summary>Destiny-style floating damage numbers (white body, yellow crit).</summary>
     public static class DamageNumbers

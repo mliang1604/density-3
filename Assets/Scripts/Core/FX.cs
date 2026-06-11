@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>Cheap procedural effects: bullet tracers and impact sparks.</summary>
     public static class FX

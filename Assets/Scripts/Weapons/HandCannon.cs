@@ -1,9 +1,9 @@
 using UnityEngine;
-using FableFPS.Core;
-using FableFPS.Player;
-using FableFPS.UI;
+using Density3.Core;
+using Density3.Player;
+using Density3.UI;
 
-namespace FableFPS.Weapons
+namespace Density3.Weapons
 {
     /// <summary>
     /// Semi-automatic hitscan hand cannon: RPM-gated trigger, ADS zoom,

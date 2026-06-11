@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>
     /// Procedurally synthesized sound effects — no audio files needed.

@@ -1,10 +1,10 @@
 using System.Collections;
 using UnityEngine;
-using FableFPS.Player;
-using FableFPS.UI;
-using FableFPS.Weapons;
+using Density3.Player;
+using Density3.UI;
+using Density3.Weapons;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>Handles player death/respawn and global audio prewarm. Scene
     /// references are serialized; anything missing is found at Start.</summary>

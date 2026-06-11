@@ -4,13 +4,13 @@ using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
-using FableFPS.Core;
-using FableFPS.Enemies;
-using FableFPS.Player;
-using FableFPS.UI;
-using FableFPS.Weapons;
+using Density3.Core;
+using Density3.Enemies;
+using Density3.Player;
+using Density3.UI;
+using Density3.Weapons;
 
-namespace FableFPS.EditorTools
+namespace Density3.EditorTools
 {
     /// <summary>
     /// Bakes the whole project into editable assets: materials in Assets/Materials,
@@ -34,7 +34,7 @@ namespace FableFPS.EditorTools
             public Material gunMetal, gunAccent, gunBlack, gunIvory, gunSteel, gunWood, gunSight;
         }
 
-        [MenuItem("FableFPS/Rebuild Test Range Scene")]
+        [MenuItem("Density3/Rebuild Test Range Scene")]
         public static void BuildAll()
         {
             EnsureFolder("Assets/Scenes");
@@ -51,7 +51,7 @@ namespace FableFPS.EditorTools
             BuildScene(mats, playerPrefab, dummyPrefab, dregPrefab, hudPrefab);
 
             AssetDatabase.SaveAssets();
-            Debug.Log("FableFPS: rebuilt — prefabs in Assets/Prefabs, materials in Assets/Materials, scene at " + ScenePath);
+            Debug.Log("Density3: rebuilt — prefabs in Assets/Prefabs, materials in Assets/Materials, scene at " + ScenePath);
         }
 
         // ----- Materials ----------------------------------------------------
@@ -898,7 +898,7 @@ namespace FableFPS.EditorTools
         /// headers are needed). Also force-includes the shaders that FX/SFX code
         /// creates at runtime via Shader.Find, which would otherwise be stripped.
         /// </summary>
-        [MenuItem("FableFPS/Build WebGL")]
+        [MenuItem("Density3/Build WebGL")]
         public static void BuildWebGL()
         {
             EnsureAlwaysIncludedShaders("Sprites/Default", "Legacy Shaders/Particles/Additive");
@@ -912,11 +912,11 @@ namespace FableFPS.EditorTools
 
             if (report.summary.result == BuildResult.Succeeded)
             {
-                Debug.Log($"FableFPS: WebGL build succeeded — {report.summary.totalSize / (1024 * 1024)} MB at Builds/WebGL");
+                Debug.Log($"Density3: WebGL build succeeded — {report.summary.totalSize / (1024 * 1024)} MB at Builds/WebGL");
             }
             else
             {
-                Debug.LogError($"FableFPS: WebGL build {report.summary.result} — {report.summary.totalErrors} errors");
+                Debug.LogError($"Density3: WebGL build {report.summary.result} — {report.summary.totalErrors} errors");
                 EditorApplication.Exit(1);
             }
         }
@@ -934,7 +934,7 @@ namespace FableFPS.EditorTools
                 var shader = Shader.Find(name);
                 if (shader == null)
                 {
-                    Debug.LogWarning("FableFPS: shader not found: " + name);
+                    Debug.LogWarning("Density3: shader not found: " + name);
                     continue;
                 }
 
@@ -960,7 +960,7 @@ namespace FableFPS.EditorTools
         /// the raw file and any old placeholder clip, and rebuilds the scene so the
         /// GameManager points at the new clip.
         /// </summary>
-        [MenuItem("FableFPS/Import Trimmed Revolver Recording")]
+        [MenuItem("Density3/Import Trimmed Revolver Recording")]
         public static void ImportRevolverRecording()
         {
             const string rawPath = "Assets/Audio/RevolverRaw.mp3";
@@ -969,7 +969,7 @@ namespace FableFPS.EditorTools
             var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(rawPath);
             if (clip == null)
             {
-                Debug.LogError("FableFPS: no clip at " + rawPath);
+                Debug.LogError("Density3: no clip at " + rawPath);
                 return;
             }
 
@@ -977,7 +977,7 @@ namespace FableFPS.EditorTools
             var interleaved = new float[clip.samples * channels];
             if (!clip.GetData(interleaved, 0))
             {
-                Debug.LogError("FableFPS: couldn't read samples from " + rawPath);
+                Debug.LogError("Density3: couldn't read samples from " + rawPath);
                 return;
             }
 
@@ -996,7 +996,7 @@ namespace FableFPS.EditorTools
             for (int i = 0; i < n; i++) peak = Mathf.Max(peak, Mathf.Abs(mono[i]));
             if (peak < 0.01f)
             {
-                Debug.LogError("FableFPS: recording appears to be silent.");
+                Debug.LogError("Density3: recording appears to be silent.");
                 return;
             }
 
@@ -1014,7 +1014,7 @@ namespace FableFPS.EditorTools
             int end = Mathf.Min(start + (int)(1.5f * sr), endLimit);
             if (end <= start + sr / 10)
             {
-                Debug.LogError("FableFPS: trim window came out too small — onset detection failed.");
+                Debug.LogError("Density3: trim window came out too small — onset detection failed.");
                 return;
             }
 
@@ -1042,7 +1042,7 @@ namespace FableFPS.EditorTools
             AssetDatabase.DeleteAsset("Assets/Audio/HandCannonShot.mp3");
             AssetDatabase.DeleteAsset(rawPath);
             AssetDatabase.ImportAsset(outPath);
-            Debug.Log($"FableFPS: trimmed single shot — onset {(float)onset / sr:F2}s, length {(float)len / sr:F2}s -> {outPath}");
+            Debug.Log($"Density3: trimmed single shot — onset {(float)onset / sr:F2}s, length {(float)len / sr:F2}s -> {outPath}");
 
             BuildAll(); // rewire the scene's GameManager to the new clip
         }

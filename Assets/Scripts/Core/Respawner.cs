@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>
     /// Hides an entity when its Health dies, then revives it at its

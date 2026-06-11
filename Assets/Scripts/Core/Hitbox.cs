@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>
     /// Attach next to any collider to route weapon hits to the owning Health.

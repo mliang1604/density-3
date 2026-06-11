@@ -1,6 +1,6 @@
 using System;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     public static class GameEvents
     {

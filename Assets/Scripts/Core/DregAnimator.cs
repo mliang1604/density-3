@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using FableFPS.Enemies;
+using Density3.Enemies;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>
     /// Procedural skeletal animation for the Dreg rig — no AnimationClips needed.

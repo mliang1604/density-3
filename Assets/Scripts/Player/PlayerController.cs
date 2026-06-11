@@ -1,7 +1,7 @@
 using UnityEngine;
-using FableFPS.Core;
+using Density3.Core;
 
-namespace FableFPS.Player
+namespace Density3.Player
 {
     /// <summary>
     /// First-person character controller with Destiny-style movement:

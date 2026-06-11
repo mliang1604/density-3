@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>Flashes all child renderers white briefly when damaged.</summary>
     [RequireComponent(typeof(Health))]

@@ -1,7 +1,7 @@
 using UnityEngine;
-using FableFPS.Core;
+using Density3.Core;
 
-namespace FableFPS.Enemies
+namespace Density3.Enemies
 {
     /// <summary>Straight-flying energy bolt. Damages the player on proximity.</summary>
     public class EnemyProjectile : MonoBehaviour

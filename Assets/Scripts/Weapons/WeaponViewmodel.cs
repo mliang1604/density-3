@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace FableFPS.Weapons
+namespace Density3.Weapons
 {
     /// <summary>
     /// One first-person weapon model. Each hand cannon frame has its own

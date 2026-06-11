@@ -4,8 +4,6 @@ A Unity 6 (6000.0.75f1) first-person hand cannon shooter inspired by Destiny 2's
 gunfeel. All geometry, weapons, and UI are original (primitives + procedural
 generation); the gunshot recording is a royalty-free Pixabay sample.
 
-> Code namespaces and editor menus still use the internal name `FableFPS`.
-
 ## How to run
 
 1. Open the project in Unity Hub (add `D:\Projects\fableTest`).
@@ -13,7 +11,7 @@ generation); the gunshot recording is a royalty-free Pixabay sample.
 3. Press Play.
 
 If the scene is ever missing or broken, regenerate it from the menu:
-**FableFPS → Rebuild Test Range Scene**.
+**Density3 → Rebuild Test Range Scene**.
 
 ## Controls
 
@@ -50,9 +48,10 @@ If the scene is ever missing or broken, regenerate it from the menu:
   enemies live on the "Enemy" layer (6).
 - **Guardian-style movement**: sprint, high double jump, regenerating shields
   (recharge after 4 s out of combat), death + respawn.
-- **Procedural audio** (`Assets/Scripts/Core/SFX.cs`): gunshots per frame,
-  reload/dry-fire clicks, crit/body hit confirms, enemy bolts, deaths, and the
-  double-jump boost are all synthesized at runtime — no audio files.
+- **Audio** (`Assets/Scripts/Core/SFX.cs`): gunshots use a royalty-free
+  recording pitched per frame (swappable on the GameManager); reload/dry-fire
+  clicks, the ether-gas scream, enemy bolts, deaths, and the double-jump boost
+  are synthesized at runtime.
 - **Test range**: dummies at 10/20/35/50 m with range markers (watch falloff),
   one moving target, and three Fallen Dreg enemies that chase, strafe, and shoot back.
 - **Rigged, animated enemies**: each Dreg is built on a real bone skeleton
@@ -79,7 +78,7 @@ If the scene is ever missing or broken, regenerate it from the menu:
   prefab instances for player/enemies/dummies/HUD.
 - `Assets/Scripts/` — Core (health/damage, death/ragdoll, FX, SFX),
   Player, Weapons (HandCannon, BulletMagnetism), Enemies, UI.
-- `Assets/Editor/ProjectBootstrap.cs` — **FableFPS → Rebuild Test Range Scene**
+- `Assets/Editor/ProjectBootstrap.cs` — **Density3 → Rebuild Test Range Scene**
   regenerates anything *missing* (deleted assets) and rewrites the scene.
   Existing prefabs/materials/weapons are never overwritten, so your edits are safe.
 

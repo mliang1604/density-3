@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-using FableFPS.Core;
-using FableFPS.Weapons;
+using Density3.Core;
+using Density3.Weapons;
 
-namespace FableFPS.UI
+namespace Density3.UI
 {
     /// <summary>
     /// HUD: crosshair, shield bar, ammo counter, kill counter, reload indicator,

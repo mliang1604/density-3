@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>
     /// Generic health pool. Set regenRate > 0 for Destiny-style recharging

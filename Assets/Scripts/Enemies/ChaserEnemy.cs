@@ -1,8 +1,8 @@
 using UnityEngine;
-using FableFPS.Core;
-using FableFPS.Player;
+using Density3.Core;
+using Density3.Player;
 
-namespace FableFPS.Enemies
+namespace Density3.Enemies
 {
     /// <summary>
     /// Simple Fallen-style combatant: closes to a preferred range,

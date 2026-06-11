@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace FableFPS.Core
+namespace Density3.Core
 {
     /// <summary>
     /// Owns a Dreg's death: switches the animated rig into a physics ragdoll,
