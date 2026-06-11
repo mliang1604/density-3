@@ -4,22 +4,20 @@ using Density3.Core;
 namespace Density3.Abilities
 {
     /// <summary>
-    /// The lingering vortex a Vortex Grenade leaves behind: ticks AoE damage
-    /// at a fixed rate (the tick path allocates nothing — AoEDamage reuses
-    /// its buffers) and re-triggers a small void burst every half second so
-    /// the zone reads as boiling gas. Self-destructs when the time is up.
+    /// The lingering vortex a Vortex Grenade or Nova Bomb leaves behind: a
+    /// churning void energy sphere whose visual edge is exactly the damage
+    /// radius, ticking AoE damage until it expires (the tick path allocates
+    /// nothing — AoEDamage reuses its buffers). Goes out with a final burst.
     /// </summary>
     public class VortexZone : MonoBehaviour
     {
         private const float TickInterval = 0.33f;
-        private const float PuffInterval = 0.35f;
 
         private float damagePerTick;
         private float radius;
         private float remaining;
         private GameObject source;
         private float tickTimer;
-        private float puffTimer;
 
         public void Configure(float tickDamage, float zoneRadius, float seconds, GameObject damageSource)
         {
@@ -28,15 +26,8 @@ namespace Density3.Abilities
             remaining = seconds;
             source = damageSource;
 
-            var light = gameObject.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.color = ElementPalette.Base(Element.Void);
-            light.range = radius * 2.5f;
-            light.intensity = 3f;
-
-            // Demark the kill radius on the ground; dies with the zone.
-            var ring = FX.SpawnGroundRing(transform.position, radius, Element.Void);
-            ring.transform.SetParent(transform, false);
+            FX.SpawnEnergySphere(transform.position, Element.Void, radius)
+                .transform.SetParent(transform, false);
         }
 
         private void Update()
@@ -50,14 +41,11 @@ namespace Density3.Abilities
                 AoEDamage.Apply(transform.position, radius, damagePerTick, source);
             }
 
-            puffTimer += Time.deltaTime;
-            if (puffTimer >= PuffInterval)
+            if (remaining <= 0f)
             {
-                puffTimer -= PuffInterval;
-                FX.SpawnElementBurst(transform.position, Element.Void, 1f);
+                FX.SpawnElementBurst(transform.position, Element.Void, 1.2f);
+                Destroy(gameObject);
             }
-
-            if (remaining <= 0f) Destroy(gameObject);
         }
     }
 }
