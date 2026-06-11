@@ -90,3 +90,11 @@ If the scene is ever missing or broken, regenerate it from the menu:
 Cross-prefab references (enemy → player, HUD → player) resolve automatically at
 runtime, so prefabs stay self-contained and you can drop more Dregs or dummies
 into the scene by dragging the prefab in.
+
+## Audio credits
+
+- Title music: "Frozen Star" — Kevin MacLeod (incompetech.com)
+- Battle music: "Space Fighter Loop" — Kevin MacLeod (incompetech.com)
+- Both licensed under Creative Commons: By Attribution 4.0
+  (https://creativecommons.org/licenses/by/4.0/)
+- Gunshot recording: freesound_community via Pixabay (Pixabay Content License)

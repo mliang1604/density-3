@@ -80,6 +80,7 @@ namespace Density3.EditorTools
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.01f, 0.02f, 0.05f);
             camGO.AddComponent<AudioListener>();
+            AddMusic(camGO, "Assets/Audio/TitleTheme.mp3", 0.45f);
 
             var canvasGO = new GameObject("TitleCanvas");
             var canvas = canvasGO.AddComponent<Canvas>();
@@ -901,7 +902,27 @@ namespace Density3.EditorTools
             var quit = gmGO.AddComponent<QuitHandler>();
             quit.requireHold = true;
 
+            AddMusic(gmGO, "Assets/Audio/BattleTheme.mp3", 0.3f);
+
             EditorSceneManager.SaveScene(scene, ScenePath);
+        }
+
+        /// <summary>Looping 2D music source; the clip is Inspector-swappable.</summary>
+        private static void AddMusic(GameObject host, string clipPath, float volume)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
+            if (clip == null)
+            {
+                Debug.LogWarning("Density3: no music clip at " + clipPath);
+                return;
+            }
+            var src = host.AddComponent<AudioSource>();
+            src.clip = clip;
+            src.loop = true;
+            src.playOnAwake = true;
+            src.volume = volume;
+            src.spatialBlend = 0f;
+            src.priority = 64; // music should not be stolen by SFX voices
         }
 
         private static GameObject PlaceDummy(GameObject prefab, Transform parent, Vector3 pos)
