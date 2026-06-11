@@ -22,6 +22,8 @@ namespace Density3.Abilities
         [Tooltip("Optional in-flight steering toward homingTarget, degrees/second. 0 = ballistic.")]
         public float homingDegreesPerSecond;
         public Transform homingTarget;
+        [Tooltip("Offset added to the homing target's position. Default 1m up = center mass; zero when homing at a precise transform like a crit zone.")]
+        public Vector3 homingAimOffset = Vector3.up;
         [Tooltip("Spherecast radius for contact checks. 0 = thin ray.")]
         public float castRadius;
 
@@ -65,7 +67,7 @@ namespace Density3.Abilities
 
             if (homingTarget != null && homingDegreesPerSecond > 0f)
             {
-                Vector3 toTarget = homingTarget.position + Vector3.up - transform.position;
+                Vector3 toTarget = homingTarget.position + homingAimOffset - transform.position;
                 vel = Vector3.RotateTowards(vel, toTarget.normalized * vel.magnitude,
                     homingDegreesPerSecond * Mathf.Deg2Rad * Time.deltaTime, 0f);
             }

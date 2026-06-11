@@ -18,6 +18,9 @@ namespace Density3.Abilities
         public float critMultiplier = 3f; // 180 on the head: lethal to a Dreg
         public float maxFlightSeconds = 2f;
         public float castRadius = 0.15f; // a knife rewards aim
+        public float trackingConeDegrees = 15f; // subtle: corrects, doesn't aim for you
+        public float trackingTurnRate = 60f;
+        public float trackingRange = 40f;
 
         private PlayerController player;
 
@@ -44,6 +47,21 @@ namespace Density3.Abilities
             proj.detonateOnImpact = true;
             proj.fuseSeconds = maxFlightSeconds;
             proj.castRadius = castRadius;
+
+            // A bit of tracking, aimed at the crit spot: a gentle correction
+            // toward the head of whatever the knife was thrown at.
+            var target = Targeting.NearestToAim(cam.position, cam.forward,
+                trackingConeDegrees, trackingRange, gameObject);
+            if (target != null)
+            {
+                Transform critZone = null;
+                foreach (var box in target.GetComponentsInChildren<Hitbox>())
+                    if (box.isCritZone) { critZone = box.transform; break; }
+                proj.homingTarget = critZone != null ? critZone : target;
+                proj.homingAimOffset = critZone != null ? Vector3.zero : Vector3.up;
+                proj.homingDegreesPerSecond = trackingTurnRate;
+            }
+
             proj.Impacted += OnKnifeHit;
             proj.Launch(cam.forward * throwSpeed);
         }

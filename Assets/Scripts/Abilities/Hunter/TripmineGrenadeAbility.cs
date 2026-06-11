@@ -13,7 +13,7 @@ namespace Density3.Abilities
     public class TripmineGrenadeAbility : AbilityBase
     {
         public float throwSpeed = 24f;
-        public float damage = 130f;
+        public float damage = 325f;
         public float blastRadius = 3.5f;
         public float beamLength = 4f;
         public float lifetimeSeconds = 30f;
