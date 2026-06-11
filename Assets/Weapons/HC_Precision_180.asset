@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43af0a0addc91814da97837c22b01420, type: 3}
+  m_Name: HC_Precision_180
+  m_EditorClassIdentifier: 
+  displayName: Dusty Vow
+  frameName: Precision Frame
+  roundsPerMinute: 180
+  bodyDamage: 34
+  critMultiplier: 1.5
+  falloffStart: 18
+  falloffEnd: 34
+  minDamageScale: 0.55
+  maxHitDistance: 300
+  magazineSize: 14
+  reloadSeconds: 1.6
+  adsZoomFov: 50
+  adsSpeed: 6
+  hipSpreadDegrees: 1.6
+  adsSpreadDegrees: 0.15
+  aimAssist: 84
+  range: 48
+  stability: 72
+  recoilPitchKick: 1.8
+  recoilYawKick: 0.35
+  recoilRecoverySpeed: 8
+  viewmodelKickback: 0.09
