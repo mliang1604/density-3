@@ -48,11 +48,13 @@ namespace Density3.Abilities
             new AbilitySpec("Golden Gun", 300f, 0.15f, 0f)
         };
 
+        // Titan pacing mirrors the other demo tunes; the charge stays in
+        // rotation because sprint is its only other gate.
         private static readonly AbilitySpec[] titan =
         {
-            new AbilitySpec("Pulse Grenade", 60f, 0.05f, 1f),
-            new AbilitySpec("Seismic Strike", 75f, 0.10f, 1f),
-            new AbilitySpec("Towering Barricade", 45f, 0.04f, 1f),
+            new AbilitySpec("Pulse Grenade", 45f, 0.05f, 1f),
+            new AbilitySpec("Seismic Strike", 25f, 0.10f, 1f),
+            new AbilitySpec("Towering Barricade", 40f, 0.04f, 1f),
             new AbilitySpec("Fists of Havoc", 300f, 0.15f, 0f)
         };
 

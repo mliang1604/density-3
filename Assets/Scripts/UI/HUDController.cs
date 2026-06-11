@@ -392,11 +392,38 @@ namespace Density3.UI
 
         /// <summary>Tiny procedural slot icons per class — no art assets, same
         /// philosophy as the crosshair sprite. Slot order: super, grenade,
-        /// melee, class ability. Titans share the Warlock set until M4.</summary>
+        /// melee, class ability.</summary>
         private void BuildSlotGlyph(RectTransform parent, int slot, GuardianClass guardianClass)
         {
             if (iconRingSprite == null) iconRingSprite = MakeRingSprite(64, 26f, 4f);
             var c = new Color(1f, 1f, 1f, 0.92f);
+
+            if (guardianClass == GuardianClass.Titan)
+            {
+                switch (slot)
+                {
+                    case 0: // Fists of Havoc: twin fists over a cracked ground line
+                        GlyphBar(parent, new Vector2(7f, 9f), 0f, c, new Vector2(-5f, 4f));
+                        GlyphBar(parent, new Vector2(7f, 9f), 0f, c, new Vector2(5f, 4f));
+                        GlyphBar(parent, new Vector2(22f, 2.5f), 0f, c, new Vector2(0f, -6f));
+                        break;
+                    case 1: // Pulse: concentric shocks
+                        GlyphRing(parent, new Vector2(10f, 10f), c);
+                        GlyphRing(parent, new Vector2(18f, 18f), c);
+                        break;
+                    case 2: // Seismic Strike: a fist with speed lines
+                        GlyphBar(parent, new Vector2(7f, 7f), 0f, c, new Vector2(4f, 0f));
+                        GlyphBar(parent, new Vector2(8f, 2f), 0f, c, new Vector2(-5f, 3f));
+                        GlyphBar(parent, new Vector2(8f, 2f), 0f, c, new Vector2(-5f, -3f));
+                        break;
+                    case 3: // Barricade: wall planks
+                        GlyphBar(parent, new Vector2(4.5f, 14f), 0f, c, new Vector2(-6f, 0f));
+                        GlyphBar(parent, new Vector2(4.5f, 14f), 0f, c);
+                        GlyphBar(parent, new Vector2(4.5f, 14f), 0f, c, new Vector2(6f, 0f));
+                        break;
+                }
+                return;
+            }
 
             if (guardianClass == GuardianClass.Hunter)
             {
