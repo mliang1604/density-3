@@ -100,6 +100,7 @@ namespace Density3.Core
         private static AudioClip vortexLoopFile;
         private static AudioClip riftLoopFile;
         private static AudioClip glideStartFile;
+        private static AudioClip glideLoopFile;
 
         public static AudioClip AbilityDetonateClip
         { get { EnsureFileClips(); EnsureClips(); return abilityDetonateFile != null ? abilityDetonateFile : boltImpact; } }
@@ -109,6 +110,7 @@ namespace Density3.Core
         { get { EnsureFileClips(); EnsureClips(); return glideStartFile != null ? glideStartFile : strafeJump; } }
         public static AudioClip VortexLoopClip { get { EnsureFileClips(); return vortexLoopFile; } }
         public static AudioClip RiftLoopClip { get { EnsureFileClips(); return riftLoopFile; } }
+        public static AudioClip GlideLoopClip { get { EnsureFileClips(); return glideLoopFile; } }
 
         private static void EnsureFileClips()
         {
@@ -119,6 +121,7 @@ namespace Density3.Core
             vortexLoopFile = Resources.Load<AudioClip>("SFX/VortexLoop");
             riftLoopFile = Resources.Load<AudioClip>("SFX/RiftLoop");
             glideStartFile = Resources.Load<AudioClip>("SFX/GlideStart");
+            glideLoopFile = Resources.Load<AudioClip>("SFX/GlideLoop");
         }
 
         /// <summary>Looping positioned source tied to the host's lifetime

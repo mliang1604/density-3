@@ -92,6 +92,8 @@ namespace Density3.Player
         private Vector3 overrideVelocity;
         private float overrideTimer;
         private bool isGliding;
+        private AudioSource glideLoop;
+        private bool wasGliding;
         private float crouchBlend;   // 0 = standing, 1 = fully crouched
         private float standHeight;
         private float standCenterY;
@@ -127,6 +129,29 @@ namespace Density3.Player
 
             HandleLook();
             HandleMovement();
+        }
+
+        private void LateUpdate()
+        {
+            // The glide wind tracks the gliding state on its edges, no matter
+            // where the glide ended (toggle, landing, respawn). Lives here
+            // because Update early-returns while the cursor is free or
+            // movement is locked, and the loop must still stop then.
+            if (isGliding == wasGliding) return;
+            wasGliding = isGliding;
+            if (isGliding)
+            {
+                if (glideLoop == null)
+                {
+                    glideLoop = SFX.AttachLoop(gameObject, SFX.GlideLoopClip, 0.35f);
+                    if (glideLoop != null) glideLoop.spatialBlend = 0f; // the player's own ears
+                }
+                else glideLoop.Play();
+            }
+            else if (glideLoop != null)
+            {
+                glideLoop.Stop();
+            }
         }
 
         public void AddRecoil(float pitchKick, float yawKick)
