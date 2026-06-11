@@ -492,7 +492,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8fcd615cef1a57438175838a8170e74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  quitKey: 27
+  quitKey: 8
   requireHold: 0
   holdSeconds: 1.2
 --- !u!114 &1960502326
@@ -647,7 +647,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: '[Esc]  Exit to Desktop'
+  m_Text: '[Backspace]  Exit to Desktop'
 --- !u!222 &1970592633
 CanvasRenderer:
   m_ObjectHideFlags: 0
