@@ -158,6 +158,61 @@ namespace Density3.Core
             return root;
         }
 
+        /// <summary>Looping element-colored ember emitter attached to a host
+        /// (burning supers, lit weapons): soft additive sparks drifting upward
+        /// in local space, so they ride the host's motion. Lifetime is the
+        /// host's; position the returned system's transform to taste.</summary>
+        public static ParticleSystem AttachEmbers(GameObject host, Element element,
+            float rate = 14f, float emberSize = 0.022f)
+        {
+            var go = new GameObject("Embers");
+            go.transform.SetParent(host.transform, false);
+            var ps = go.AddComponent<ParticleSystem>();
+            Color c = ElementPalette.Base(element);
+
+            var main = ps.main;
+            main.loop = true;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 0.9f);
+            main.startSpeed = 0f;
+            main.startSize = new ParticleSystem.MinMaxCurve(emberSize * 0.7f, emberSize * 1.3f);
+            main.startColor = Color.Lerp(c, Color.white, 0.3f);
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.maxParticles = 60;
+
+            var emission = ps.emission;
+            emission.rateOverTime = rate;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(0.05f, 0.04f, 0.38f); // a barrel's length
+
+            var vel = ps.velocityOverLifetime;
+            vel.enabled = true;
+            vel.space = ParticleSystemSimulationSpace.Local;
+            vel.y = new ParticleSystem.MinMaxCurve(0.25f, 0.5f); // embers rise
+
+            var colorOverLife = ps.colorOverLifetime;
+            colorOverLife.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(Color.Lerp(c, Color.white, 0.5f), 0f),
+                    new GradientColorKey(c, 0.5f),
+                    new GradientColorKey(Color.black, 1f)
+                },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) });
+            colorOverLife.color = new ParticleSystem.MinMaxGradient(grad);
+
+            var psRenderer = go.GetComponent<ParticleSystemRenderer>();
+            psRenderer.material = EtherParticleMaterial();
+            psRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            psRenderer.receiveShadows = false;
+            psRenderer.sortMode = ParticleSystemSortMode.None;
+
+            return ps;
+        }
+
         /// <summary>Element-colored energy trail for ability projectiles —
         /// turns a bare bolt into a streak of its element.</summary>
         public static TrailRenderer AddElementTrail(GameObject host, Element element, float width = 0.3f)

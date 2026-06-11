@@ -1,4 +1,5 @@
 using UnityEngine;
+using Density3.Core;
 using Density3.Weapons;
 
 namespace Density3.Abilities
@@ -66,6 +67,10 @@ namespace Density3.Abilities
             glow.color = new Color(1f, 0.65f, 0.25f);
             glow.intensity = 1.6f;
             glow.range = 1.1f;
+
+            // Golden embers drifting off the barrel for the whole draw.
+            var embers = FX.AttachEmbers(root, Element.Solar, 18f);
+            embers.transform.localPosition = new Vector3(0f, 0.075f, 0.16f);
 
             var vm = root.AddComponent<WeaponViewmodel>();
             vm.muzzlePoint = muzzleGO.transform;

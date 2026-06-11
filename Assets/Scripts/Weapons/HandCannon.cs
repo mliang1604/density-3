@@ -57,6 +57,10 @@ namespace Density3.Weapons
         /// supers and perks hook kill effects here.</summary>
         public event System.Action<Health, Vector3> TargetKilled;
 
+        /// <summary>Raised per shot with the muzzle position and the shot's
+        /// end point — cosmetic layers (super shot visuals) hook here.</summary>
+        public event System.Action<Vector3, Vector3> ShotFired;
+
         /// <summary>Temporarily replaces the equipped weapon (supers). The
         /// previous weapon — and its exact mag state — returns on EndOverride.
         /// Reloading and frame swapping are suspended while active. An
@@ -280,6 +284,7 @@ namespace Density3.Weapons
                 ? vm.muzzlePoint.position
                 : cam.transform.position + dir * 0.4f;
             FX.SpawnTracer(muzzlePos, end, data.tracerColor);
+            ShotFired?.Invoke(muzzlePos, end);
             if (vm != null && vm.muzzleLight != null)
             {
                 vm.muzzleLight.enabled = true;

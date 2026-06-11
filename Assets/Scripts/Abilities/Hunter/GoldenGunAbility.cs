@@ -46,6 +46,7 @@ namespace Density3.Abilities
                 goldenViewmodel = GoldenGunViewmodel.Build(weapon.viewmodel);
             weapon.BeginOverride(goldenData, rounds, goldenViewmodel);
             weapon.TargetKilled += OnGunKill;
+            weapon.ShotFired += OnGoldenShot;
             active = true;
             endTime = Time.time + durationSeconds;
 
@@ -84,10 +85,33 @@ namespace Density3.Abilities
             }
         }
 
+        /// <summary>Golden shots get a traveling fire-bolt with trail and
+        /// bursts layered over the hitscan tracer — purely cosmetic; the
+        /// damage already landed the instant the trigger broke.</summary>
+        private void OnGoldenShot(Vector3 muzzle, Vector3 end)
+        {
+            FX.SpawnElementBurst(muzzle, Element.Solar, 0.5f); // muzzle bloom
+
+            var bolt = FX.SpawnBolt(muzzle, Element.Solar);
+            bolt.name = "GoldenShot";
+            bolt.transform.localScale = Vector3.one * 0.3f;
+            FX.AddElementTrail(bolt, Element.Solar, 0.45f);
+
+            Vector3 path = end - muzzle;
+            const float speed = 90f;
+            var proj = bolt.AddComponent<ThrownAbilityProjectile>();
+            proj.gravity = 0f;
+            proj.detonateOnImpact = true;
+            proj.fuseSeconds = Mathf.Max(0.05f, path.magnitude / speed);
+            proj.Detonated += at => FX.SpawnElementBurst(at, Element.Solar, 0.9f);
+            proj.Launch(path.normalized * speed);
+        }
+
         private void EndGoldenGun()
         {
             active = false;
             weapon.TargetKilled -= OnGunKill;
+            weapon.ShotFired -= OnGoldenShot;
             if (weapon.IsOverridden) weapon.EndOverride(); // re-shows the frame model
             if (goldenViewmodel != null)
             {
