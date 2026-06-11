@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Density3.Core;
@@ -18,6 +19,9 @@ namespace Density3.Abilities
     {
         public float durationSeconds = 12f;
         public int rounds = 3;
+        public float explosionDamage = 160f;
+        public float explosionRadius = 4f;
+        public float chainDelaySeconds = 0.15f; // the chain reads as a cascade, not one blast
 
         private static Material goldMaterial;
 
@@ -42,6 +46,7 @@ namespace Density3.Abilities
             if (goldenData == null) goldenData = BuildGoldenData();
 
             weapon.BeginOverride(goldenData, rounds);
+            weapon.TargetKilled += OnGunKill;
             TintActiveViewmodel();
             active = true;
             endTime = Time.time + durationSeconds;
@@ -59,9 +64,32 @@ namespace Density3.Abilities
                 EndGoldenGun();
         }
 
+        /// <summary>Golden Gun kills detonate the victim; kills from the
+        /// detonation detonate too, cascading outward. A started chain keeps
+        /// running even if the super ends mid-cascade.</summary>
+        private void OnGunKill(Health victim, Vector3 at)
+            => StartCoroutine(ChainExplode(victim.transform.position + Vector3.up));
+
+        private IEnumerator ChainExplode(Vector3 at)
+        {
+            FX.SpawnElementBurst(at, Element.Solar, 1.3f);
+            SFX.Play3D(SFX.AbilityDetonateClip, at, 0.85f, 8f);
+
+            var killed = new List<Health>(); // rare event; per-blast list is fine
+            AoEDamage.Apply(at, explosionRadius, explosionDamage, gameObject, true, killed);
+
+            foreach (var victim in killed)
+            {
+                if (victim == null) continue;
+                yield return new WaitForSeconds(chainDelaySeconds);
+                StartCoroutine(ChainExplode(victim.transform.position + Vector3.up));
+            }
+        }
+
         private void EndGoldenGun()
         {
             active = false;
+            weapon.TargetKilled -= OnGunKill;
             if (weapon.IsOverridden) weapon.EndOverride();
             for (int i = 0; i < tintedRenderers.Count; i++)
                 if (tintedRenderers[i] != null)

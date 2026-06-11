@@ -51,6 +51,10 @@ namespace Density3.Weapons
         public bool IsOverridden => overrideData != null;
         public int OverrideRoundsLeft => overrideRounds;
 
+        /// <summary>Raised when a shot kills its target (victim, hit point) —
+        /// supers and perks hook kill effects here.</summary>
+        public event System.Action<Health, Vector3> TargetKilled;
+
         /// <summary>Temporarily replaces the equipped weapon (supers). The
         /// previous weapon — and its exact mag state — returns on EndOverride.
         /// Reloading and frame swapping are suspended while active.</summary>
@@ -235,9 +239,14 @@ namespace Density3.Weapons
                 if (hb != null)
                 {
                     float dmg = data.bodyDamage * FalloffScale(data, hit.distance);
+                    var owner = hb.owner;
+                    bool wasAlive = owner != null && !owner.IsDead;
                     float applied = hb.Hit(dmg, data.critMultiplier, hit.point, gameObject);
                     if (applied > 0f)
+                    {
                         DamageNumbers.Spawn(hit.point, applied, hb.isCritZone);
+                        if (wasAlive && owner.IsDead) TargetKilled?.Invoke(owner, hit.point);
+                    }
                 }
                 else
                 {
