@@ -47,12 +47,17 @@ namespace Density3.Abilities
         /// <summary>Spends the full bar and fires the ability when charged.</summary>
         public bool TryActivate()
         {
-            if (data == null || !IsReady) return false;
+            if (data == null || !IsReady || !CanActivate()) return false;
             SetEnergy(0f);
             OnActivate();
             Activated?.Invoke();
             return true;
         }
+
+        /// <summary>Subclass gate for situational requirements (grounded casts
+        /// and the like). Checked before the bar is spent, so a refused
+        /// activation costs nothing.</summary>
+        protected virtual bool CanActivate() => true;
 
         /// <summary>Grants bonus energy (refund mechanics, pickups, tuning hooks).</summary>
         public void AddEnergy(float amount) => SetEnergy(Energy + amount);

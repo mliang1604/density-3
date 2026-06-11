@@ -110,7 +110,6 @@ namespace Density3.EditorTools
             // slots from the selected class at spawn.
             go.AddComponent<PlayerAbilities>();
             go.AddComponent<ClassLoadout>();
-            go.AddComponent<PlayerBody>(); // builds its primitive body in Awake
 
             var camGO = new GameObject("PlayerCamera") { layer = 2, tag = "MainCamera" };
             camGO.transform.SetParent(go.transform, false);

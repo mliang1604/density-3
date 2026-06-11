@@ -47,8 +47,6 @@ namespace Density3.Core
             // runtime (ClassLoadout adds PlayerAbilities itself if missing).
             if (player.GetComponent<ClassLoadout>() == null)
                 player.gameObject.AddComponent<ClassLoadout>();
-            if (player.GetComponent<PlayerBody>() == null)
-                player.gameObject.AddComponent<PlayerBody>();
 
             playerHealth = player.GetComponent<Health>();
             spawnPos = player.transform.position;

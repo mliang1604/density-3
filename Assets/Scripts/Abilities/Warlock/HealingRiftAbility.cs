@@ -21,13 +21,18 @@ namespace Density3.Abilities
 
         private PlayerController player;
         private Health health;
+        private CharacterController cc;
 
         protected override void Awake()
         {
             base.Awake();
             player = GetComponent<PlayerController>();
             health = GetComponent<Health>();
+            cc = GetComponent<CharacterController>();
         }
+
+        /// <summary>Rifts are planted: no casting mid-air.</summary>
+        protected override bool CanActivate() => cc == null || cc.isGrounded;
 
         protected override void OnActivate() => StartCoroutine(Cast());
 

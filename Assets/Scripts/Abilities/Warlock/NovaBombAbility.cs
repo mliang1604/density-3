@@ -17,8 +17,8 @@ namespace Density3.Abilities
         public float castLockSeconds = 0.4f;
         public float projectileSpeed = 14f;
         public float damage = 400f;
-        public float blastRadius = 12f;
-        public float vortexRadius = 8f;
+        public float blastRadius = 14.4f;
+        public float vortexRadius = 9.6f;
         public float vortexDamagePerTick = 25f;
         public float vortexSeconds = 6f;
         [Tooltip("Only enemies within this angle of the throw vector are tracked.")]
