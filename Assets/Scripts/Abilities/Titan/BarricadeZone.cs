@@ -47,12 +47,16 @@ namespace Density3.Abilities
 
             gameObject.AddComponent<DamageFlash>();
 
-            var glow = gameObject.AddComponent<Light>();
+            // The light rides its own child — putting it on the zone root and
+            // moving "its" transform would move the whole barricade.
+            var glowGO = new GameObject("Glow");
+            glowGO.transform.SetParent(transform, false);
+            glowGO.transform.localPosition = Vector3.up * 1.5f;
+            var glow = glowGO.AddComponent<Light>();
             glow.type = LightType.Point;
             glow.color = ElementPalette.Base(Element.Arc);
             glow.range = 3.5f;
             glow.intensity = 1.8f;
-            glow.transform.localPosition = Vector3.up * 1.5f;
         }
 
         private void Panel(string name, Vector3 localPos, float yaw)

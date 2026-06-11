@@ -14,6 +14,7 @@ namespace Density3.Abilities
         public float throwSpeed = 28f;
         public float damagePerPulse = 60f; // x3 = 180 for the full stay
         public float pulseRadius = 4f;
+        public float chainDamage = 40f;
 
         private PlayerController player;
 
@@ -37,7 +38,7 @@ namespace Density3.Abilities
             {
                 var zone = new GameObject("PulseZone").AddComponent<PulseZone>();
                 zone.transform.position = at;
-                zone.Configure(damagePerPulse, pulseRadius, gameObject);
+                zone.Configure(damagePerPulse, pulseRadius, chainDamage, gameObject);
             };
             proj.Launch(cam.forward * throwSpeed + Vector3.up * 1.5f);
             SFX.Play2D(SFX.AbilityThrowClip, 0.6f);

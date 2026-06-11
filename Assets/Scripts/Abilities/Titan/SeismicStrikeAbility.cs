@@ -23,6 +23,7 @@ namespace Density3.Abilities
         public float aoeDamage = 80f;
         public float aoeRadius = 3f;
         public float shoveDistance = 1.6f;
+        public float chainDamage = 50f;
 
         private static readonly Collider[] overlaps = new Collider[32];
         private static readonly HashSet<CharacterController> shoved = new HashSet<CharacterController>();
@@ -88,6 +89,7 @@ namespace Density3.Abilities
 
             AoEDamage.Apply(at, aoeRadius, aoeDamage, gameObject);
             Shove(at);
+            ChainLightning.Chain(hb.owner, chainDamage, gameObject);
             FX.SpawnElementBurst(at, Element.Arc, 1.2f);
             SFX.Play3D(SFX.MeleeImpactClip, at, 0.95f, 7f);
             SFX.Play3D(SFX.AbilityDetonateClip, at, 0.6f, 7f);

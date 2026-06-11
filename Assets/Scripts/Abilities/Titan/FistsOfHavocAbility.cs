@@ -19,6 +19,7 @@ namespace Density3.Abilities
         public float speedBuff = 1.25f;
         public float slamDamage = 250f;
         public float slamRadius = 5f;
+        public float chainDamage = 60f;
         public float leapForward = 8f;
         public float leapUp = 6f;
         public float diveDown = 18f;
@@ -92,6 +93,8 @@ namespace Density3.Abilities
             slamPending = false;
             Vector3 at = transform.position + Vector3.down * 0.8f;
             AoEDamage.Apply(at, slamRadius, slamDamage, gameObject);
+            var chainOrigin = ChainLightning.NearestTarget(at, slamRadius, gameObject);
+            if (chainOrigin != null) ChainLightning.Chain(chainOrigin, chainDamage, gameObject);
             FX.SpawnElementBurst(at, Element.Arc, 2f);
             SFX.Play3D(SFX.AbilityDetonateClip, at, 1f, 12f);
             SFX.Play2D(SFX.GunshotFor(100f), 0.7f, 0.5f); // low crack for the quake
