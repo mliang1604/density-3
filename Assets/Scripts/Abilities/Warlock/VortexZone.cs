@@ -26,8 +26,10 @@ namespace Density3.Abilities
             remaining = seconds;
             source = damageSource;
 
+            // worldPositionStays: the sphere is already at the detonation
+            // point; parenting only ties its lifetime to the zone.
             FX.SpawnEnergySphere(transform.position, Element.Void, radius)
-                .transform.SetParent(transform, false);
+                .transform.SetParent(transform, true);
         }
 
         private void Update()

@@ -31,7 +31,7 @@ namespace Density3.Abilities
             Color c = ElementPalette.Base(Element.Void);
 
             ring = FX.SpawnGroundRing(transform.position, radius, Element.Void, 0.09f);
-            ring.transform.SetParent(transform, false); // expires with the rift
+            ring.transform.SetParent(transform, true); // expires with the rift
 
             glow = gameObject.AddComponent<Light>();
             glow.type = LightType.Point;
