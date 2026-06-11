@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using Density3.Core;
 using Density3.Player;
@@ -7,14 +6,14 @@ using Density3.UI;
 namespace Density3.Abilities
 {
     /// <summary>
-    /// Warlock super: a brief planted cast, then a large, slow void bomb
-    /// that detonates on impact with a huge AoE. The cast lock, screen kick,
-    /// and a void-tinted vignette pulse sell the weight. Energy is the full
-    /// super bar, spent by the activation gate.
+    /// Warlock super: fires instantly — a large, slow void bomb that seeks
+    /// the target nearest the throw vector and detonates on impact with a
+    /// huge AoE, leaving a suction vortex. Screen kick and a void-tinted
+    /// vignette pulse sell the weight. Energy is the full super bar, spent
+    /// by the activation gate.
     /// </summary>
     public class NovaBombAbility : AbilityBase
     {
-        public float castLockSeconds = 0.4f;
         public float projectileSpeed = 14f;
         public float bombCastRadius = 1.2f; // fat contact check — near misses connect
         public float damage = 400f;
@@ -27,25 +26,16 @@ namespace Density3.Abilities
         public float trackingTurnRate = 180f; // deg/sec — seeks hard
 
         private PlayerController player;
-        private Health health;
 
         protected override void Awake()
         {
             base.Awake();
             player = GetComponent<PlayerController>();
-            health = GetComponent<Health>();
         }
 
-        protected override void OnActivate() => StartCoroutine(Cast());
-
-        private IEnumerator Cast()
+        protected override void OnActivate()
         {
-            if (player != null) player.MovementLocked = true;
             SFX.Play2D(SFX.SuperActivateClip, 0.9f);
-            yield return new WaitForSeconds(castLockSeconds);
-
-            if (health != null && health.IsDead) yield break; // respawn owns the lock
-            if (player != null) player.MovementLocked = false;
 
             Transform cam = player != null && player.playerCamera != null
                 ? player.playerCamera.transform : transform;
