@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Density3.Core;
+using Density3.Player;
 using Density3.Weapons;
 
 namespace Density3.UI
@@ -26,14 +27,20 @@ namespace Density3.UI
 
         private HandCannon weapon;
         private Health playerHealth;
+        private PlayerController playerController;
         private float vignetteAlpha;
         private int kills;
+        private int lastAirJumps; // 0 forces a hint refresh on the first frame
         private Font font;
 
         private void Start()
         {
             weapon = FindFirstObjectByType<HandCannon>();
-            if (weapon != null) playerHealth = weapon.GetComponent<Health>();
+            if (weapon != null)
+            {
+                playerHealth = weapon.GetComponent<Health>();
+                playerController = weapon.GetComponent<PlayerController>();
+            }
             if (playerHealth != null) playerHealth.Damaged += OnPlayerDamaged;
             GameEvents.EnemyKilled += OnEnemyKilled;
 
@@ -74,6 +81,15 @@ namespace Density3.UI
                 var vc = vignette.color;
                 vc.a = vignetteAlpha;
                 vignette.color = vc;
+            }
+
+            // Keep the [Space] hint in sync with the current jump type.
+            if (hintText != null && playerController != null && playerController.airJumps != lastAirJumps)
+            {
+                lastAirJumps = playerController.airJumps;
+                string jumpName = lastAirJumps == 2 ? "triple jump" : "strafe jump";
+                hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide"
+                    + "   [Space] " + jumpName + "   [J] toggle jump type";
             }
         }
 
@@ -146,7 +162,7 @@ namespace Density3.UI
 
             hintText = MakeText(root, "Hint", 16, TextAnchor.LowerRight);
             Anchor(hintText.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 14f), new Vector2(620f, 22f));
-            hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide   [Space] strafe jump   [J] triple jump";
+            hintText.text = "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide   [Space] strafe jump   [J] toggle jump type";
             hintText.color = new Color(1f, 1f, 1f, 0.45f);
 
             killsText = MakeText(root, "Kills", 26, TextAnchor.UpperRight);

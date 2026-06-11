@@ -25,8 +25,8 @@ If the scene is ever missing or broken, regenerate it from the menu:
 | Shift | Sprint |
 | C | Crouch (hold) |
 | C while sprinting | Crouch-slide |
-| Space | Jump / strafe jump (adds momentum) |
-| J | Toggle double / triple jump |
+| Space | Jump, then strafe jump (one long lunge) or triple jump (two low hops) |
+| J | Toggle jump type (strafe / triple) |
 | 1 / 2 / 3 | Swap hand cannon frame |
 | Esc | Free the cursor (click to re-lock) |
 

@@ -34,13 +34,16 @@ namespace Density3.Player
 
         [Header("Jump")]
         public float jumpHeight = 1.3f;
-        [FormerlySerializedAs("doubleJumpHeight")]
-        public float strafeJumpHeight = 2.4f;
-        [Tooltip("Horizontal burst added along your movement direction by each strafe jump.")]
-        public float strafeJumpBoost = 3.5f;
-        [Tooltip("Air jumps available: 1 = strafe (double) jump, 2 = triple jump.")]
+        [Tooltip("Air jumps available: 1 = strafe jump (one big boosted leap), 2 = triple jump (two lower hops).")]
         [Range(1, 2)] public int airJumps = 1;
         public KeyCode tripleJumpToggleKey = KeyCode.J;
+        [FormerlySerializedAs("doubleJumpHeight")]
+        public float strafeJumpHeight = 2.4f;
+        [Tooltip("Horizontal burst of the single strafe jump — a long forward lunge.")]
+        public float strafeJumpBoost = 6f;
+        [Tooltip("Triple-jump hops are lower and gentler, trading the strafe lunge for flexibility.")]
+        public float tripleJumpHeight = 1.3f;
+        public float tripleJumpBoost = 2f;
         public float gravity = -24f;
 
         [Header("Look")]
@@ -201,15 +204,18 @@ namespace Density3.Player
                 else if (airJumpsLeft > 0)
                 {
                     airJumpsLeft--;
-                    velocity.y = Mathf.Sqrt(strafeJumpHeight * -2f * gravity);
+                    bool triple = airJumps == 2;
 
-                    // Strafe jump: burst of momentum along the movement input
-                    // (forward if neutral), capped so chained jumps can't
-                    // stack to silly speeds.
+                    // Strafe mode: one tall leap with a big lunge and a generous
+                    // speed cap — covers more ground than triple jump's two
+                    // lower, gently-boosted hops (which win on flexibility).
+                    velocity.y = Mathf.Sqrt((triple ? tripleJumpHeight : strafeJumpHeight) * -2f * gravity);
+
                     Vector3 boostDir = transform.right * input.x + transform.forward * input.y;
                     boostDir = boostDir.sqrMagnitude > 0.01f ? boostDir.normalized : transform.forward;
-                    Vector3 boosted = new Vector3(velocity.x, 0f, velocity.z) + boostDir * strafeJumpBoost;
-                    float maxAirSpeed = sprintSpeed * 1.25f;
+                    Vector3 boosted = new Vector3(velocity.x, 0f, velocity.z)
+                        + boostDir * (triple ? tripleJumpBoost : strafeJumpBoost);
+                    float maxAirSpeed = sprintSpeed * (triple ? 1.15f : 1.5f);
                     if (boosted.magnitude > maxAirSpeed) boosted = boosted.normalized * maxAirSpeed;
                     velocity.x = boosted.x;
                     velocity.z = boosted.z;
