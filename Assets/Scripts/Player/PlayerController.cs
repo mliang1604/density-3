@@ -40,7 +40,7 @@ namespace Density3.Player
         [FormerlySerializedAs("doubleJumpHeight")]
         public float strafeJumpHeight = 2.5f; // 3.5 ground + 2.5 = 6 m max stack
         [Tooltip("Horizontal burst of the single strafe jump — a long forward lunge.")]
-        public float strafeJumpBoost = 6f;
+        public float strafeJumpBoost = 8f;
         [Tooltip("Triple-jump hops are lower and gentler, trading the strafe lunge for flexibility.")]
         public float tripleJumpHeight = 1.75f; // 3.5 + 1.75 + 1.75 = 7 m max stack
         public float tripleJumpBoost = 2f;
@@ -143,8 +143,14 @@ namespace Density3.Player
 
         private void HandleLook()
         {
-            yaw += Input.GetAxis("Mouse X") * mouseSensitivity * SensitivityScale;
-            pitch -= Input.GetAxis("Mouse Y") * mouseSensitivity * SensitivityScale;
+            // Swallow mouse deltas briefly after locking the cursor — the OS
+            // pointer snap on lock arrives as one huge delta that would pitch
+            // the camera into the ground on scene start (and on re-lock).
+            if (Time.time - CursorLockedAt > 0.15f)
+            {
+                yaw += Input.GetAxis("Mouse X") * mouseSensitivity * SensitivityScale;
+                pitch -= Input.GetAxis("Mouse Y") * mouseSensitivity * SensitivityScale;
+            }
             pitch = Mathf.Clamp(pitch, -maxPitch, maxPitch);
 
             recoil = Vector2.Lerp(recoil, Vector2.zero, recoilRecovery * Time.deltaTime);
@@ -215,7 +221,7 @@ namespace Density3.Player
                     boostDir = boostDir.sqrMagnitude > 0.01f ? boostDir.normalized : transform.forward;
                     Vector3 boosted = new Vector3(velocity.x, 0f, velocity.z)
                         + boostDir * (triple ? tripleJumpBoost : strafeJumpBoost);
-                    float maxAirSpeed = sprintSpeed * (triple ? 1.15f : 1.5f);
+                    float maxAirSpeed = sprintSpeed * (triple ? 1.15f : 1.7f);
                     if (boosted.magnitude > maxAirSpeed) boosted = boosted.normalized * maxAirSpeed;
                     velocity.x = boosted.x;
                     velocity.z = boosted.z;
