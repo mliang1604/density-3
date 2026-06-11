@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
+using Density3.Abilities;
 using Density3.Core;
 using Density3.Enemies;
 using Density3.Player;
@@ -104,6 +105,11 @@ namespace Density3.EditorTools
             health.SetMaxHealth(190f);
             health.regenDelay = 4f;
             health.regenRate = 90f;
+
+            // Ability stack: the router reads input, ClassLoadout fills its
+            // slots from the selected class at spawn.
+            go.AddComponent<PlayerAbilities>();
+            go.AddComponent<ClassLoadout>();
 
             var camGO = new GameObject("PlayerCamera") { layer = 2, tag = "MainCamera" };
             camGO.transform.SetParent(go.transform, false);

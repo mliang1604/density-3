@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Density3.Abilities;
 using Density3.Core;
 using Density3.Player;
 using Density3.Weapons;
@@ -24,6 +26,10 @@ namespace Density3.UI
         public Text fpsText;
         public Image healthFill;
         public Image vignette;
+        public Image superFill;
+        public Image grenadeFill;
+        public Image meleeFill;
+        public Image classFill;
         public GameObject crosshairRing;
 
         private HandCannon weapon;
@@ -35,6 +41,15 @@ namespace Density3.UI
         private Font font;
         private int fpsFrames;
         private float fpsTimer;
+
+        private const float SuperBarWidth = 240f;
+        private const float AbilityBarWidth = 140f;
+        private PlayerAbilities abilities;
+        private bool abilitiesBound;
+        private Color abilityTint = new Color(0.92f, 0.96f, 1f, 0.95f);
+        private readonly float[] readyFlash = new float[4]; // super, grenade, melee, class
+        private AbilityBase[] boundAbilities;
+        private Action<bool>[] readyHandlers;
 
         private void Start()
         {
@@ -59,6 +74,13 @@ namespace Density3.UI
             {
                 var canvas = GetComponentInChildren<Canvas>();
                 if (canvas != null) MakeFpsText(canvas.transform);
+            }
+
+            // Same fallback for prefabs predating the ability meters.
+            if (superFill == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas != null) MakeAbilityMeters(canvas.transform);
             }
         }
 
@@ -92,6 +114,12 @@ namespace Density3.UI
                 vc.a = vignetteAlpha;
                 vignette.color = vc;
             }
+
+            // Ability meters bind lazily: ClassLoadout fills the slots in Awake
+            // (possibly added during GameManager.Start), so the first Update —
+            // which runs after every Start — can always bind.
+            if (!abilitiesBound) TryBindAbilities();
+            UpdateAbilityMeters();
 
             // Averaging over a short window keeps the readout from flickering.
             fpsFrames++;
@@ -134,6 +162,59 @@ namespace Density3.UI
         {
             if (playerHealth != null) playerHealth.Damaged -= OnPlayerDamaged;
             GameEvents.EnemyKilled -= OnEnemyKilled;
+            if (boundAbilities != null)
+                for (int i = 0; i < boundAbilities.Length; i++)
+                    if (boundAbilities[i] != null && readyHandlers[i] != null)
+                        boundAbilities[i].ReadyChanged -= readyHandlers[i];
+        }
+
+        private void TryBindAbilities()
+        {
+            if (abilities == null) abilities = FindFirstObjectByType<PlayerAbilities>();
+            if (abilities == null) return;
+
+            var loadout = abilities.GetComponent<ClassLoadout>();
+            if (loadout != null && loadout.Active != null)
+                abilityTint = Color.Lerp(
+                    ElementPalette.Base(loadout.Active.element), Color.white, 0.25f);
+
+            boundAbilities = new[]
+                { abilities.super, abilities.grenade, abilities.melee, abilities.classAbility };
+            readyHandlers = new Action<bool>[boundAbilities.Length];
+            for (int i = 0; i < boundAbilities.Length; i++)
+            {
+                if (boundAbilities[i] == null) continue;
+                int slot = i;
+                readyHandlers[i] = ready => OnAbilityReady(slot, ready);
+                boundAbilities[i].ReadyChanged += readyHandlers[i];
+            }
+            abilitiesBound = true;
+        }
+
+        private void OnAbilityReady(int slot, bool ready)
+        {
+            if (!ready) return;
+            readyFlash[slot] = 1f;
+            // The super landing is the bigger moment — deeper, louder chime.
+            SFX.Play2D(SFX.AbilityReadyClip, slot == 0 ? 0.55f : 0.35f, slot == 0 ? 0.8f : 1.2f);
+        }
+
+        private void UpdateAbilityMeters()
+        {
+            SetMeter(superFill, 0, SuperBarWidth);
+            SetMeter(grenadeFill, 1, AbilityBarWidth);
+            SetMeter(meleeFill, 2, AbilityBarWidth);
+            SetMeter(classFill, 3, AbilityBarWidth);
+        }
+
+        private void SetMeter(Image fill, int slot, float width)
+        {
+            if (fill == null) return;
+            float energy = boundAbilities != null && boundAbilities[slot] != null
+                ? boundAbilities[slot].Energy : 0f;
+            readyFlash[slot] = Mathf.MoveTowards(readyFlash[slot], 0f, 2f * Time.deltaTime);
+            fill.rectTransform.sizeDelta = new Vector2((width - 2f) * energy, -2f);
+            fill.color = Color.Lerp(abilityTint, Color.white, readyFlash[slot]);
         }
 
         // ----- One-time layout construction (called by the editor bootstrap; the
@@ -193,6 +274,7 @@ namespace Density3.UI
             killsText.text = "KILLS  0";
 
             MakeFpsText(root);
+            MakeAbilityMeters(root);
 
             reloadText = MakeText(root, "Reload", 22, TextAnchor.MiddleCenter);
             SetCenter(reloadText.rectTransform, new Vector2(0f, -60f), new Vector2(300f, 30f));
@@ -205,6 +287,40 @@ namespace Density3.UI
             respawnText.text = "GUARDIAN DOWN - RESPAWNING...";
             respawnText.color = new Color(1f, 0.35f, 0.3f, 1f);
             respawnText.gameObject.SetActive(false);
+        }
+
+        /// <summary>Bottom-left ability meters: super bar on top, then the
+        /// grenade/melee/class rows, each tagged with its key bind. Fills are
+        /// element-tinted once the loadout binds. Called from BuildLayout and,
+        /// for prefabs that predate it, from Start.</summary>
+        private void MakeAbilityMeters(Transform root)
+        {
+            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            superFill = MakeMeter(root, "Super", "Q", new Vector2(40f, 88f), new Vector2(SuperBarWidth, 10f));
+            grenadeFill = MakeMeter(root, "Grenade", "G", new Vector2(40f, 64f), new Vector2(AbilityBarWidth, 8f));
+            meleeFill = MakeMeter(root, "Melee", "V", new Vector2(40f, 46f), new Vector2(AbilityBarWidth, 8f));
+            classFill = MakeMeter(root, "Class", "F", new Vector2(40f, 28f), new Vector2(AbilityBarWidth, 8f));
+        }
+
+        private Image MakeMeter(Transform root, string name, string key, Vector2 pos, Vector2 size)
+        {
+            var label = MakeText(root, name + "Key", 12, TextAnchor.MiddleLeft);
+            Anchor(label.rectTransform, new Vector2(0f, 0f), pos, new Vector2(14f, size.y + 4f));
+            label.text = key;
+            label.color = new Color(1f, 1f, 1f, 0.55f);
+
+            var bg = MakeImage(root, name + "BG", new Color(0f, 0f, 0f, 0.55f));
+            Anchor(bg.rectTransform, new Vector2(0f, 0f), pos + new Vector2(18f, 0f), size);
+
+            // Same left-anchored fill idiom as HealthFill: width scales with energy.
+            var fill = MakeImage(bg.rectTransform, name + "Fill", new Color(0.92f, 0.96f, 1f, 0.95f));
+            var fr = fill.rectTransform;
+            fr.anchorMin = new Vector2(0f, 0f);
+            fr.anchorMax = new Vector2(0f, 1f);
+            fr.pivot = new Vector2(0f, 0.5f);
+            fr.anchoredPosition = new Vector2(1f, 0f);
+            fr.sizeDelta = new Vector2(size.x - 2f, -2f);
+            return fill;
         }
 
         /// <summary>Top-left FPS readout, mirroring the kill counter's placement.

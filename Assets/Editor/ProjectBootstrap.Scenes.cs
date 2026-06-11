@@ -92,9 +92,17 @@ namespace Density3.EditorTools
             exitRect.sizeDelta = new Vector2(400f, 30f);
             exit.alignment = TextAnchor.MiddleLeft;
 
+            // Filled by TitleScreen.RefreshClassText at runtime.
+            var classSelect = MakeTitleText("ClassSelect", "", 22, cream);
+            var csRect = classSelect.rectTransform;
+            csRect.anchorMin = csRect.anchorMax = new Vector2(0.5f, 0f);
+            csRect.anchoredPosition = new Vector2(0f, 200f);
+            csRect.sizeDelta = new Vector2(1100f, 30f);
+
             var title = canvasGO.AddComponent<TitleScreen>();
             title.gameSceneName = "TestRange";
             title.pressToPlay = press;
+            title.classSelect = classSelect;
 
             var quit = canvasGO.AddComponent<QuitHandler>();
             quit.requireHold = false; // tap to quit on the title screen

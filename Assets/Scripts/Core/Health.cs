@@ -60,6 +60,14 @@ namespace Density3.Core
             }
         }
 
+        /// <summary>Restores health up to max. The dead stay dead — Revive is
+        /// the resurrection path.</summary>
+        public void Heal(float amount)
+        {
+            if (IsDead) return;
+            Current = Mathf.Min(maxHealth, Current + amount);
+        }
+
         public void Revive()
         {
             IsDead = false;

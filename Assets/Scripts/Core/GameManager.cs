@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Density3.Abilities;
 using Density3.Player;
 using Density3.UI;
 using Density3.Weapons;
@@ -10,6 +11,10 @@ namespace Density3.Core
     /// references are serialized; anything missing is found at Start.</summary>
     public class GameManager : MonoBehaviour
     {
+        /// <summary>Class picked on the title screen; survives the scene load.
+        /// Warlock when a gameplay scene is launched directly in the editor.</summary>
+        public static GuardianClass SelectedClass = GuardianClass.Warlock;
+
         public float respawnDelay = 3f;
 
         [Header("Wiring (scene references)")]
@@ -37,6 +42,11 @@ namespace Density3.Core
             if (player == null) return;
             if (weapon == null) weapon = player.GetComponent<HandCannon>();
             if (hud == null) hud = FindFirstObjectByType<HUDController>();
+
+            // Player prefabs that predate the ability system get the stack at
+            // runtime (ClassLoadout adds PlayerAbilities itself if missing).
+            if (player.GetComponent<ClassLoadout>() == null)
+                player.gameObject.AddComponent<ClassLoadout>();
 
             playerHealth = player.GetComponent<Health>();
             spawnPos = player.transform.position;

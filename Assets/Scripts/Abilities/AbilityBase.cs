@@ -57,6 +57,16 @@ namespace Density3.Abilities
         /// <summary>Grants bonus energy (refund mechanics, pickups, tuning hooks).</summary>
         public void AddEnergy(float amount) => SetEnergy(Energy + amount);
 
+        /// <summary>Assigns data and resets the charge to its starting value —
+        /// for abilities attached at runtime (ClassLoadout), where Awake has
+        /// already run with no data.</summary>
+        public void Bind(AbilityData abilityData)
+        {
+            data = abilityData;
+            Energy = data != null ? data.startEnergy : 0f;
+            wasReady = IsReady;
+        }
+
         /// <summary>The ability's effect. Energy is already spent when this runs.</summary>
         protected abstract void OnActivate();
 
