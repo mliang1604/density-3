@@ -37,7 +37,7 @@ namespace Density3.UI
         private PlayerController playerController;
         private float vignetteAlpha;
         private int kills;
-        private int lastAirJumps; // 0 forces a hint refresh on the first frame
+        private bool jumpHintSet;
         private Font font;
         private int fpsFrames;
         private float fpsTimer;
@@ -134,18 +134,21 @@ namespace Density3.UI
                 fpsTimer = 0f;
             }
 
-            // Keep the [Space] hint in sync with the current jump type.
-            if (hintText != null && playerController != null && playerController.airJumps != lastAirJumps)
+            // The jump style is fixed per class; set the hint once.
+            if (hintText != null && playerController != null && !jumpHintSet)
             {
-                lastAirJumps = playerController.airJumps;
-                hintText.text = HintText(lastAirJumps == 2 ? "triple jump" : "strafe jump");
+                jumpHintSet = true;
+                hintText.text = HintText(
+                    playerController.jumpStyle == JumpStyle.Glide ? "glide"
+                    : playerController.jumpStyle == JumpStyle.TripleJump ? "triple jump"
+                    : "strafe jump");
             }
         }
 
         /// <summary>The control-hint line; the [Space] entry names the active jump type.</summary>
         private static string HintText(string jumpName) =>
             "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide"
-            + "   [Space] " + jumpName + "   [J] toggle jump type   [hold Backspace] exit";
+            + "   [Space] " + jumpName + "   [hold Backspace] exit";
 
         public void ShowRespawnOverlay(bool show)
         {

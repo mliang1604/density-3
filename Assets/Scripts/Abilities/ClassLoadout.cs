@@ -1,5 +1,6 @@
 using UnityEngine;
 using Density3.Core;
+using Density3.Player;
 
 namespace Density3.Abilities
 {
@@ -28,6 +29,13 @@ namespace Density3.Abilities
             slots.melee = Attach(Active.melee, AbilitySlot.Melee);
             slots.classAbility = Attach(Active.classAbility, AbilitySlot.ClassAbility);
             slots.super = Attach(Active.super, AbilitySlot.Super);
+
+            // Class movement identity: Warlocks glide. The strafe/triple jump
+            // implementations stay in PlayerController for the Hunter kit (M3).
+            var pc = GetComponent<PlayerController>();
+            if (pc != null)
+                pc.jumpStyle = Active.guardianClass == GuardianClass.Warlock
+                    ? JumpStyle.Glide : JumpStyle.StrafeJump;
         }
 
         private AbilityBase Attach(AbilityData data, AbilitySlot slot)

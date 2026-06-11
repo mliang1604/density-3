@@ -4,9 +4,18 @@ using Density3.Core;
 
 namespace Density3.Player
 {
+    /// <summary>Class movement identity, applied by ClassLoadout: Warlocks
+    /// glide; the strafe/triple jump styles are kept for the Hunter kit.</summary>
+    public enum JumpStyle
+    {
+        StrafeJump,
+        TripleJump,
+        Glide
+    }
+
     /// <summary>
     /// First-person character controller with Destiny-style movement:
-    /// sprint, momentum-boosting strafe jumps (toggleable double/triple),
+    /// sprint, class-styled jumps (strafe/triple leaps or Warlock glide),
     /// crouch, crouch-slide, and weapon-driven recoil.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
@@ -33,10 +42,11 @@ namespace Density3.Player
         public float slideCameraDip = 0.15f; // extra camera drop while sliding
 
         [Header("Jump")]
+        [Tooltip("Set by ClassLoadout per class. Warlocks glide; strafe/triple stay implemented for the Hunter kit (M3).")]
+        public JumpStyle jumpStyle = JumpStyle.StrafeJump;
         public float jumpHeight = 3.5f;
-        [Tooltip("Air jumps available: 1 = strafe jump (one big boosted leap), 2 = triple jump (two lower hops).")]
+        [Tooltip("Air jumps for the leap styles: 1 = strafe (one big boosted leap), 2 = triple (two lower hops).")]
         [Range(1, 2)] public int airJumps = 1;
-        public KeyCode tripleJumpToggleKey = KeyCode.J;
         [FormerlySerializedAs("doubleJumpHeight")]
         public float strafeJumpHeight = 2.5f; // 3.5 ground + 2.5 = 6 m max stack
         [Tooltip("Horizontal burst of the single strafe jump — a long forward lunge.")]
@@ -45,6 +55,12 @@ namespace Density3.Player
         public float tripleJumpHeight = 1.75f; // 3.5 + 1.75 + 1.75 = 7 m max stack
         public float tripleJumpBoost = 2f;
         public float gravity = -24f;
+
+        [Header("Glide (Warlock)")]
+        public float glideGravity = -4f;
+        public float glideMaxFallSpeed = -2.5f;
+        [Tooltip("Strafe Glide's signature: near-full air control while gliding.")]
+        [Range(0f, 1f)] public float glideAirControl = 1f;
 
         [Header("Look")]
         public float mouseSensitivity = 2.2f;
@@ -75,6 +91,7 @@ namespace Density3.Player
         private Vector3 slideDir;
         private Vector3 overrideVelocity;
         private float overrideTimer;
+        private bool isGliding;
         private float crouchBlend;   // 0 = standing, 1 = fully crouched
         private float standHeight;
         private float standCenterY;
@@ -82,6 +99,7 @@ namespace Density3.Player
 
         public bool IsCrouching => isCrouching;
         public bool IsSliding => isSliding;
+        public bool IsGliding => isGliding;
         public bool MovementOverridden => overrideTimer > 0f;
 
         private void Awake()
@@ -106,13 +124,6 @@ namespace Density3.Player
                 return;
             }
             if (MovementLocked) return;
-
-            if (Input.GetKeyDown(tripleJumpToggleKey))
-            {
-                airJumps = airJumps == 1 ? 2 : 1;
-                // Pitch up = triple jump on, pitch down = back to double.
-                SFX.Play2D(SFX.ReloadStartClip, 0.45f, airJumps == 2 ? 1.5f : 0.75f);
-            }
 
             HandleLook();
             HandleMovement();
@@ -149,6 +160,7 @@ namespace Density3.Player
             recoil = Vector2.zero;
             isSliding = false;
             isCrouching = false;
+            isGliding = false;
             velocity = Vector3.zero;
             overrideTimer = 0f;
         }
@@ -186,6 +198,7 @@ namespace Density3.Player
             if (grounded)
             {
                 airJumpsLeft = airJumps;
+                isGliding = false;
                 if (velocity.y < 0f) velocity.y = -2f;
             }
 
@@ -223,7 +236,7 @@ namespace Density3.Player
                     float targetSpeed = (isCrouching ? crouchSpeed
                         : IsSprinting ? sprintSpeed : walkSpeed) * SpeedScale;
                     Vector3 wishDir = transform.right * input.x + transform.forward * input.y;
-                    float control = grounded ? 1f : airControl;
+                    float control = grounded ? 1f : isGliding ? glideAirControl : airControl;
                     horizontal = Vector3.MoveTowards(horizontal, wishDir * targetSpeed,
                         acceleration * control * Time.deltaTime);
                 }
@@ -239,11 +252,19 @@ namespace Density3.Player
                     if (isSliding) EndSlide();
                     velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 }
+                else if (jumpStyle == JumpStyle.Glide)
+                {
+                    // Warlock Strafe Glide: toggle a floaty, fully steerable
+                    // descent. Space again (or landing) ends it.
+                    isGliding = !isGliding;
+                    if (isGliding && velocity.y < 0f) velocity.y *= 0.3f; // catch the fall
+                }
                 else if (airJumpsLeft > 0)
                 {
                     airJumpsLeft--;
-                    bool triple = airJumps == 2;
+                    bool triple = jumpStyle == JumpStyle.TripleJump;
 
+                    // Hunter-bound styles, kept implemented for M3.
                     // Strafe mode: one tall leap with a big lunge and a generous
                     // speed cap — covers more ground than triple jump's two
                     // lower, gently-boosted hops (which win on flexibility).
@@ -262,7 +283,8 @@ namespace Density3.Player
                 }
             }
 
-            velocity.y += gravity * Time.deltaTime;
+            velocity.y += (isGliding ? glideGravity : gravity) * Time.deltaTime;
+            if (isGliding) velocity.y = Mathf.Max(velocity.y, glideMaxFallSpeed);
             controller.Move(velocity * Time.deltaTime);
 
             UpdateCrouchPose();
