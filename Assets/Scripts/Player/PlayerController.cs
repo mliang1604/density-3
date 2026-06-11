@@ -102,6 +102,7 @@ namespace Density3.Player
         public bool IsCrouching => isCrouching;
         public bool IsSliding => isSliding;
         public bool IsGliding => isGliding;
+        public bool IsGrounded => controller != null && controller.isGrounded;
         public bool MovementOverridden => overrideTimer > 0f;
 
         private void Awake()
