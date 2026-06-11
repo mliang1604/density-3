@@ -58,10 +58,7 @@ namespace Density3.Core
             if (hud != null) hud.ShowRespawnOverlay(true);
             yield return new WaitForSeconds(respawnDelay);
 
-            var cc = player.GetComponent<CharacterController>();
-            cc.enabled = false;
-            player.transform.SetPositionAndRotation(spawnPos, spawnRot);
-            cc.enabled = true;
+            CharacterTeleport.To(player.transform, spawnPos, spawnRot);
             player.ResetLook(spawnRot.eulerAngles.y);
 
             playerHealth.Revive();

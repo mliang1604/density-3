@@ -27,6 +27,28 @@ namespace Density3.Core
             Object.Destroy(go, 0.05f);
         }
 
+        private static Material boltMaterial;
+
+        /// <summary>Glowing purple energy-bolt body: visuals only, no collider —
+        /// the caller adds flight behavior.</summary>
+        public static GameObject SpawnBolt(Vector3 position)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            go.name = "EnemyBolt";
+            Object.Destroy(go.GetComponent<Collider>());
+            go.transform.position = position;
+            go.transform.localScale = Vector3.one * 0.22f;
+            if (boltMaterial == null)
+            {
+                boltMaterial = new Material(Shader.Find("Standard"));
+                boltMaterial.color = new Color(0.6f, 0.2f, 1f);
+                boltMaterial.EnableKeyword("_EMISSION");
+                boltMaterial.SetColor("_EmissionColor", new Color(0.55f, 0.2f, 1f) * 2.5f);
+            }
+            go.GetComponent<Renderer>().material = boltMaterial;
+            return go;
+        }
+
         public static void SpawnImpact(Vector3 point, Vector3 normal)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);

@@ -32,10 +32,7 @@ namespace Density3.Core
         private void OnDied()
         {
             if (countsAsKill)
-            {
-                GameEvents.RaiseEnemyKilled();
-                SFX.Play3D(SFX.EnemyDeathClip, transform.position, 0.9f);
-            }
+                GameEvents.AnnounceEnemyKilled(transform.position);
             StartCoroutine(RespawnRoutine());
         }
 
@@ -44,10 +41,7 @@ namespace Density3.Core
             if (deathAnimSeconds > 0f) yield return new WaitForSeconds(deathAnimSeconds);
             SetVisible(false);
             yield return new WaitForSeconds(Mathf.Max(0f, delay - deathAnimSeconds));
-            var cc = GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
-            transform.SetPositionAndRotation(startPos, startRot);
-            if (cc != null) cc.enabled = true;
+            CharacterTeleport.To(transform, startPos, startRot);
             health.Revive();
             SetVisible(true);
         }
