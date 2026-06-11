@@ -48,10 +48,10 @@ namespace Density3.EditorTools
             var weapons = BuildWeapons();
             BuildClasses();
             var playerPrefab = BuildPlayerPrefab(mats, weapons);
-            var dummyPrefab = BuildDummyPrefab(mats);
+            BuildDummyPrefab(mats); // asset kept for DPS testing and the M5 gallery
             var dregPrefab = BuildDregPrefab(mats);
             var hudPrefab = BuildHudPrefab();
-            BuildScene(mats, playerPrefab, dummyPrefab, dregPrefab, hudPrefab);
+            BuildScene(mats, playerPrefab, dregPrefab, hudPrefab);
             BuildTitleScene();
 
             // Title first: it is the startup scene in builds.
