@@ -30,7 +30,6 @@ namespace Density3.Player
         public float slideFriction = 4.5f;   // m/s² the slide bleeds off
         public float slideSteer = 2.5f;      // rad/s the slide can be steered
         public float slideCameraDip = 0.15f; // extra camera drop while sliding
-        public float slideRoll = 7f;         // camera roll (deg) while sliding
 
         [Header("Jump")]
         public float jumpHeight = 3.5f;
@@ -73,7 +72,6 @@ namespace Density3.Player
         private float slideTimer;
         private Vector3 slideDir;
         private float crouchBlend;   // 0 = standing, 1 = fully crouched
-        private float cameraRoll;
         private float standHeight;
         private float standCenterY;
         private float standCamY;
@@ -130,7 +128,6 @@ namespace Density3.Player
             recoil = Vector2.zero;
             isSliding = false;
             isCrouching = false;
-            cameraRoll = 0f;
             velocity = Vector3.zero;
         }
 
@@ -158,7 +155,7 @@ namespace Density3.Player
             transform.rotation = Quaternion.Euler(0f, yaw + recoil.y, 0f);
             if (cameraPivot != null)
                 cameraPivot.localRotation = Quaternion.Euler(
-                    Mathf.Clamp(pitch - recoil.x, -maxPitch, maxPitch), 0f, cameraRoll);
+                    Mathf.Clamp(pitch - recoil.x, -maxPitch, maxPitch), 0f, 0f);
         }
 
         private void HandleMovement()
@@ -282,8 +279,8 @@ namespace Density3.Player
                 out _, need + 0.1f, ~(1 << 2), QueryTriggerInteraction.Ignore);
         }
 
-        /// <summary>Lerps controller height, camera height, and camera roll toward
-        /// the current crouch/slide state.</summary>
+        /// <summary>Lerps controller height and camera height toward the current
+        /// crouch/slide state.</summary>
         private void UpdateCrouchPose()
         {
             float target = (isCrouching || isSliding) ? 1f : 0f;
@@ -302,8 +299,6 @@ namespace Density3.Player
                 lp.y = Mathf.Lerp(lp.y, camY, crouchLerp * Time.deltaTime);
                 cameraPivot.localPosition = lp;
             }
-
-            cameraRoll = Mathf.Lerp(cameraRoll, isSliding ? slideRoll : 0f, 8f * Time.deltaTime);
         }
     }
 }
