@@ -33,16 +33,16 @@ namespace Density3.Player
         public float slideRoll = 7f;         // camera roll (deg) while sliding
 
         [Header("Jump")]
-        public float jumpHeight = 1.3f;
+        public float jumpHeight = 3.5f;
         [Tooltip("Air jumps available: 1 = strafe jump (one big boosted leap), 2 = triple jump (two lower hops).")]
         [Range(1, 2)] public int airJumps = 1;
         public KeyCode tripleJumpToggleKey = KeyCode.J;
         [FormerlySerializedAs("doubleJumpHeight")]
-        public float strafeJumpHeight = 3.84f;
+        public float strafeJumpHeight = 2.5f; // 3.5 ground + 2.5 = 6 m max stack
         [Tooltip("Horizontal burst of the single strafe jump — a long forward lunge.")]
         public float strafeJumpBoost = 6f;
         [Tooltip("Triple-jump hops are lower and gentler, trading the strafe lunge for flexibility.")]
-        public float tripleJumpHeight = 2.08f;
+        public float tripleJumpHeight = 1.75f; // 3.5 + 1.75 + 1.75 = 7 m max stack
         public float tripleJumpBoost = 2f;
         public float gravity = -24f;
 

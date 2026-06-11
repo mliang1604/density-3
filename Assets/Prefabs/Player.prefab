@@ -3285,8 +3285,8 @@ MonoBehaviour:
   slideSteer: 2.5
   slideCameraDip: 0.15
   slideRoll: 7
-  jumpHeight: 1.3
-  doubleJumpHeight: 3.84
+  jumpHeight: 3.5
+  doubleJumpHeight: 2.5
   gravity: -24
   mouseSensitivity: 2.2
   maxPitch: 89

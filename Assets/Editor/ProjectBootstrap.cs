@@ -824,11 +824,12 @@ namespace Density3.EditorTools
             ground.transform.localScale = new Vector3(12f, 1f, 12f); // 120 x 120 m
             ground.GetComponent<Renderer>().sharedMaterial = mats.ground;
 
+            // Tall enough that a full 7 m triple-jump stack can't clear them.
             const float half = 60f;
-            CreateBox(env, "Wall_N", new Vector3(0f, 3f, half), new Vector3(120f, 6f, 1f), mats.wall);
-            CreateBox(env, "Wall_S", new Vector3(0f, 3f, -half), new Vector3(120f, 6f, 1f), mats.wall);
-            CreateBox(env, "Wall_E", new Vector3(half, 3f, 0f), new Vector3(1f, 6f, 120f), mats.wall);
-            CreateBox(env, "Wall_W", new Vector3(-half, 3f, 0f), new Vector3(1f, 6f, 120f), mats.wall);
+            CreateBox(env, "Wall_N", new Vector3(0f, 5f, half), new Vector3(120f, 10f, 1f), mats.wall);
+            CreateBox(env, "Wall_S", new Vector3(0f, 5f, -half), new Vector3(120f, 10f, 1f), mats.wall);
+            CreateBox(env, "Wall_E", new Vector3(half, 5f, 0f), new Vector3(1f, 10f, 120f), mats.wall);
+            CreateBox(env, "Wall_W", new Vector3(-half, 5f, 0f), new Vector3(1f, 10f, 120f), mats.wall);
 
             CreateBox(env, "Cover", new Vector3(-8f, 0.75f, -20f), new Vector3(3f, 1.5f, 1f), mats.cover);
             CreateBox(env, "Cover", new Vector3(7f, 0.75f, -12f), new Vector3(3f, 1.5f, 1f), mats.cover);
