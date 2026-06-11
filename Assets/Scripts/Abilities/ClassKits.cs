@@ -38,11 +38,13 @@ namespace Density3.Abilities
             new AbilitySpec("Nova Bomb", 300f, 0.15f, 0f)
         };
 
+        // Hunter pacing mirrors the Warlock demo tune; the knife leans on its
+        // precision-kill refund rather than the timer.
         private static readonly AbilitySpec[] hunter =
         {
-            new AbilitySpec("Tripmine Grenade", 60f, 0.05f, 1f),
-            new AbilitySpec("Throwing Knife", 75f, 0.10f, 1f),
-            new AbilitySpec("Marksman's Dodge", 30f, 0.03f, 1f),
+            new AbilitySpec("Tripmine Grenade", 45f, 0.05f, 1f),
+            new AbilitySpec("Throwing Knife", 25f, 0.10f, 1f),
+            new AbilitySpec("Marksman's Dodge", 25f, 0.03f, 1f),
             new AbilitySpec("Golden Gun", 300f, 0.15f, 0f)
         };
 

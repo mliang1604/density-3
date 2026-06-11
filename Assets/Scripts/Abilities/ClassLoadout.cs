@@ -30,12 +30,17 @@ namespace Density3.Abilities
             slots.classAbility = Attach(Active.classAbility, AbilitySlot.ClassAbility);
             slots.super = Attach(Active.super, AbilitySlot.Super);
 
-            // Class movement identity: Warlocks glide. The strafe/triple jump
-            // implementations stay in PlayerController for the Hunter kit (M3).
+            // Class movement identity: Warlocks glide, Hunters triple-jump
+            // (two air hops), Titans keep the strafe leap until their kit.
             var pc = GetComponent<PlayerController>();
             if (pc != null)
-                pc.jumpStyle = Active.guardianClass == GuardianClass.Warlock
-                    ? JumpStyle.Glide : JumpStyle.StrafeJump;
+            {
+                pc.jumpStyle =
+                    Active.guardianClass == GuardianClass.Warlock ? JumpStyle.Glide :
+                    Active.guardianClass == GuardianClass.Hunter ? JumpStyle.TripleJump :
+                    JumpStyle.StrafeJump;
+                pc.airJumps = pc.jumpStyle == JumpStyle.TripleJump ? 2 : 1;
+            }
         }
 
         private AbilityBase Attach(AbilityData data, AbilitySlot slot)
@@ -65,6 +70,16 @@ namespace Density3.Abilities
                     case AbilitySlot.Melee: return gameObject.AddComponent<EnergyDrainMelee>();
                     case AbilitySlot.ClassAbility: return gameObject.AddComponent<HealingRiftAbility>();
                     case AbilitySlot.Super: return gameObject.AddComponent<NovaBombAbility>();
+                }
+            }
+            if (Active.guardianClass == GuardianClass.Hunter)
+            {
+                switch (slot)
+                {
+                    case AbilitySlot.Grenade: return gameObject.AddComponent<TripmineGrenadeAbility>();
+                    case AbilitySlot.Melee: return gameObject.AddComponent<ThrowingKnifeAbility>();
+                    case AbilitySlot.ClassAbility: return gameObject.AddComponent<MarksmansDodgeAbility>();
+                    case AbilitySlot.Super: return gameObject.AddComponent<GoldenGunAbility>();
                 }
             }
 

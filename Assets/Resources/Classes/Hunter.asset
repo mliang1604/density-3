@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-6416241370374868142
+--- !u!114 &-8349973578719840171
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -14,8 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Throwing Knife
   element: 1
-  cooldownSeconds: 75
+  cooldownSeconds: 25
   energyOnKill: 0.1
+  startEnergy: 1
+--- !u!114 &-3280793433223107194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Tripmine Grenade
+  m_EditorClassIdentifier: 
+  displayName: Tripmine Grenade
+  element: 1
+  cooldownSeconds: 45
+  energyOnKill: 0.05
   startEnergy: 1
 --- !u!114 &11400000
 MonoBehaviour:
@@ -32,11 +49,11 @@ MonoBehaviour:
   guardianClass: 1
   className: Hunter
   element: 1
-  grenade: {fileID: 8661925457901164508}
-  melee: {fileID: -6416241370374868142}
-  classAbility: {fileID: 2848066959915277624}
-  super: {fileID: 46363527854338636}
---- !u!114 &46363527854338636
+  grenade: {fileID: -3280793433223107194}
+  melee: {fileID: -8349973578719840171}
+  classAbility: {fileID: 7552324025888827032}
+  super: {fileID: 3999621926610690231}
+--- !u!114 &3999621926610690231
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -53,7 +70,7 @@ MonoBehaviour:
   cooldownSeconds: 300
   energyOnKill: 0.15
   startEnergy: 0
---- !u!114 &2848066959915277624
+--- !u!114 &7552324025888827032
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -67,23 +84,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Marksman's Dodge
   element: 1
-  cooldownSeconds: 30
+  cooldownSeconds: 25
   energyOnKill: 0.03
-  startEnergy: 1
---- !u!114 &8661925457901164508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
-  m_Name: Tripmine Grenade
-  m_EditorClassIdentifier: 
-  displayName: Tripmine Grenade
-  element: 1
-  cooldownSeconds: 60
-  energyOnKill: 0.05
   startEnergy: 1

@@ -30,6 +30,7 @@ namespace Density3.UI
         public Image grenadeFill;
         public Image meleeFill;
         public Image classFill;
+        [HideInInspector] public RectTransform[] glyphRoots = new RectTransform[4];
         public GameObject crosshairRing;
 
         private HandCannon weapon;
@@ -203,6 +204,14 @@ namespace Density3.UI
                 abilityTint = Color.Lerp(
                     ElementPalette.Base(loadout.Active.element), Color.white, 0.25f);
 
+            // Slot glyphs are class-specific (knife vs palm, dodge vs rift),
+            // so they're built here, once the class is known.
+            var guardianClass = loadout != null && loadout.Active != null
+                ? loadout.Active.guardianClass : GuardianClass.Warlock;
+            for (int i = 0; i < glyphRoots.Length; i++)
+                if (glyphRoots[i] != null && glyphRoots[i].childCount == 0)
+                    BuildSlotGlyph(glyphRoots[i], i, guardianClass);
+
             boundAbilities = new[]
                 { abilities.super, abilities.grenade, abilities.melee, abilities.classAbility };
             readyHandlers = new Action<bool>[boundAbilities.Length];
@@ -366,7 +375,9 @@ namespace Density3.UI
             kr.anchoredPosition = center + new Vector2(0f, -(half + 9f));
             kr.sizeDelta = new Vector2(40f, 14f);
 
-            // Slot glyph, counter-rotated upright, drawn over the fill.
+            // Slot glyph container, counter-rotated upright, drawn over the
+            // fill. Left empty here: glyphs are class-specific and get built
+            // by TryBindAbilities once the loadout is known.
             var glyphGO = new GameObject(name + "Icon", typeof(RectTransform));
             var gr = glyphGO.GetComponent<RectTransform>();
             gr.SetParent(bgRect, false);
@@ -375,17 +386,43 @@ namespace Density3.UI
             gr.offsetMin = Vector2.zero;
             gr.offsetMax = Vector2.zero;
             gr.localRotation = Quaternion.Euler(0f, 0f, -rotation);
-            BuildSlotGlyph(gr, glyphSlot);
+            glyphRoots[glyphSlot] = gr;
             return fill;
         }
 
-        /// <summary>Tiny procedural slot icons — no art assets, same philosophy
-        /// as the crosshair sprite: a nova burst, a grenade orb, a melee slash,
-        /// a rift ellipse.</summary>
-        private void BuildSlotGlyph(RectTransform parent, int slot)
+        /// <summary>Tiny procedural slot icons per class — no art assets, same
+        /// philosophy as the crosshair sprite. Slot order: super, grenade,
+        /// melee, class ability. Titans share the Warlock set until M4.</summary>
+        private void BuildSlotGlyph(RectTransform parent, int slot, GuardianClass guardianClass)
         {
             if (iconRingSprite == null) iconRingSprite = MakeRingSprite(64, 26f, 4f);
             var c = new Color(1f, 1f, 1f, 0.92f);
+
+            if (guardianClass == GuardianClass.Hunter)
+            {
+                switch (slot)
+                {
+                    case 0: // Golden Gun: a pistol silhouette
+                        GlyphBar(parent, new Vector2(16f, 4f), 0f, c, new Vector2(2f, 4f));
+                        GlyphBar(parent, new Vector2(4.5f, 11f), 20f, c, new Vector2(-5f, -3f));
+                        break;
+                    case 1: // Tripmine: a mine and its laser
+                        GlyphBar(parent, new Vector2(6f, 6f), 45f, c, new Vector2(-6f, 0f));
+                        GlyphBar(parent, new Vector2(13f, 2f), 0f, c, new Vector2(4f, 0f));
+                        break;
+                    case 2: // Throwing knife: blade and guard
+                        GlyphBar(parent, new Vector2(2.8f, 16f), 45f, c);
+                        GlyphBar(parent, new Vector2(9f, 2.5f), -45f, c, new Vector2(-4f, -4f));
+                        break;
+                    case 3: // Dodge: dash lines
+                        GlyphBar(parent, new Vector2(14f, 2.5f), 0f, c, new Vector2(2f, 5f));
+                        GlyphBar(parent, new Vector2(11f, 2.5f), 0f, c, new Vector2(-1f, 0f));
+                        GlyphBar(parent, new Vector2(8f, 2.5f), 0f, c, new Vector2(-4f, -5f));
+                        break;
+                }
+                return;
+            }
+
             switch (slot)
             {
                 case 0: // super: a nova burst

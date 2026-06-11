@@ -20,6 +20,13 @@ namespace Density3.Abilities
         /// <summary>Returns how many targets were damaged.</summary>
         public static int Apply(Vector3 center, float radius, float damage, GameObject source,
             bool showNumbers = true)
+            => Apply(center, radius, damage, source, showNumbers, null);
+
+        /// <summary>As Apply, additionally appending targets killed by this
+        /// application to killed (the list is not cleared here) — chain
+        /// mechanics read it to keep detonating.</summary>
+        public static int Apply(Vector3 center, float radius, float damage, GameObject source,
+            bool showNumbers, List<Health> killed)
         {
             int n = Physics.OverlapSphereNonAlloc(center, radius, overlaps, ~0,
                 QueryTriggerInteraction.Ignore);
@@ -40,6 +47,7 @@ namespace Density3.Abilities
                     source = source
                 });
                 if (showNumbers) DamageNumbers.Spawn(at, damage, false);
+                if (killed != null && health.IsDead) killed.Add(health);
                 damaged++;
             }
             return damaged;

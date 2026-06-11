@@ -36,13 +36,66 @@ namespace Density3.Weapons
         private float baseFov;
         private float muzzleLightOff;
 
+        private WeaponData overrideData;
+        private int overrideRounds;
+        private WeaponViewmodel overrideViewmodel;
+        private GameObject hiddenFrameViewmodel;
+
         public WeaponData Current =>
-            (loadout != null && loadout.Length > 0)
+            overrideData != null ? overrideData
+            : (loadout != null && loadout.Length > 0)
                 ? loadout[Mathf.Clamp(currentIndex, 0, loadout.Length - 1)]
                 : null;
 
-        public int RoundsInMag => magState != null ? magState[currentIndex] : 0;
+        public int RoundsInMag => overrideData != null ? overrideRounds
+            : magState != null ? magState[currentIndex] : 0;
         public bool IsReloading => reloading;
+        public bool IsOverridden => overrideData != null;
+        public int OverrideRoundsLeft => overrideRounds;
+
+        /// <summary>Raised when a shot kills its target (victim, hit point) —
+        /// supers and perks hook kill effects here.</summary>
+        public event System.Action<Health, Vector3> TargetKilled;
+
+        /// <summary>Raised per shot with the muzzle position and the shot's
+        /// end point — cosmetic layers (super shot visuals) hook here.</summary>
+        public event System.Action<Vector3, Vector3> ShotFired;
+
+        /// <summary>Temporarily replaces the equipped weapon (supers). The
+        /// previous weapon — and its exact mag state — returns on EndOverride.
+        /// Reloading and frame swapping are suspended while active. An
+        /// optional dedicated viewmodel replaces the frame's model for the
+        /// duration (caller owns its lifetime; the frame model re-shows on
+        /// end).</summary>
+        public void BeginOverride(WeaponData weapon, int rounds, WeaponViewmodel viewmodelOverride = null)
+        {
+            overrideData = weapon;
+            overrideRounds = rounds;
+            reloading = false;
+            nextFireTime = Time.time + 0.25f;
+
+            overrideViewmodel = viewmodelOverride;
+            if (viewmodelOverride != null && FrameViewmodel != null)
+            {
+                hiddenFrameViewmodel = FrameViewmodel.gameObject;
+                hiddenFrameViewmodel.SetActive(false);
+            }
+            PushMagnetismStats();
+        }
+
+        public void EndOverride()
+        {
+            overrideData = null;
+            overrideRounds = 0;
+            overrideViewmodel = null;
+            nextFireTime = Time.time + 0.25f;
+            if (hiddenFrameViewmodel != null)
+            {
+                hiddenFrameViewmodel.SetActive(true);
+                hiddenFrameViewmodel = null;
+            }
+            PushMagnetismStats();
+        }
 
         private void Awake()
         {
@@ -61,10 +114,13 @@ namespace Density3.Weapons
             PushMagnetismStats();
         }
 
-        private WeaponViewmodel ActiveViewmodel =>
+        private WeaponViewmodel FrameViewmodel =>
             (viewmodels != null && viewmodels.Length > 0)
                 ? viewmodels[Mathf.Clamp(currentIndex, 0, viewmodels.Length - 1)]
                 : null;
+
+        private WeaponViewmodel ActiveViewmodel =>
+            overrideViewmodel != null ? overrideViewmodel : FrameViewmodel;
 
         /// <summary>Shows only the model matching the equipped frame.</summary>
         private void SetViewmodelIndex(int index)
@@ -118,23 +174,24 @@ namespace Density3.Weapons
                 magnetism.SetADS(adsNow);
             }
 
-            if (reloading && Time.time >= reloadEndTime)
+            if (!IsOverridden && reloading && Time.time >= reloadEndTime)
             {
                 reloading = false;
                 magState[currentIndex] = data.magazineSize;
                 SFX.Play2D(SFX.ReloadEndClip, 0.6f);
             }
 
-            if (!reloading && Input.GetKeyDown(KeyCode.R) && magState[currentIndex] < data.magazineSize)
+            if (!IsOverridden && !reloading && Input.GetKeyDown(KeyCode.R)
+                && magState[currentIndex] < data.magazineSize)
                 StartReload(data);
 
             // Semi-auto: one shot per click, gated by frame RPM.
             if (!reloading && Input.GetMouseButtonDown(0) && Time.time - player.CursorLockedAt > 0.15f)
             {
-                if (magState[currentIndex] <= 0)
+                if (RoundsInMag <= 0)
                 {
                     SFX.Play2D(SFX.DryFireClip, 0.5f);
-                    StartReload(data);
+                    if (!IsOverridden) StartReload(data);
                 }
                 else if (Time.time >= nextFireTime) Fire(data);
             }
@@ -156,6 +213,7 @@ namespace Density3.Weapons
 
         private void HandleSwitching()
         {
+            if (IsOverridden) return; // the super owns the hands
             for (int i = 0; i < loadout.Length && i < 3; i++)
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1 + i) && i != currentIndex)
@@ -181,7 +239,8 @@ namespace Density3.Weapons
 
         private void Fire(WeaponData data)
         {
-            magState[currentIndex]--;
+            if (IsOverridden) overrideRounds--;
+            else magState[currentIndex]--;
             nextFireTime = Time.time + data.SecondsBetweenShots;
             SFX.PlayGunshot(data.roundsPerMinute, 0.85f);
 
@@ -205,9 +264,14 @@ namespace Density3.Weapons
                 if (hb != null)
                 {
                     float dmg = data.bodyDamage * FalloffScale(data, hit.distance);
+                    var owner = hb.owner;
+                    bool wasAlive = owner != null && !owner.IsDead;
                     float applied = hb.Hit(dmg, data.critMultiplier, hit.point, gameObject);
                     if (applied > 0f)
+                    {
                         DamageNumbers.Spawn(hit.point, applied, hb.isCritZone);
+                        if (wasAlive && owner.IsDead) TargetKilled?.Invoke(owner, hit.point);
+                    }
                 }
                 else
                 {
@@ -219,7 +283,8 @@ namespace Density3.Weapons
             Vector3 muzzlePos = (vm != null && vm.muzzlePoint != null)
                 ? vm.muzzlePoint.position
                 : cam.transform.position + dir * 0.4f;
-            FX.SpawnTracer(muzzlePos, end, new Color(1f, 0.9f, 0.6f, 0.9f));
+            FX.SpawnTracer(muzzlePos, end, data.tracerColor);
+            ShotFired?.Invoke(muzzlePos, end);
             if (vm != null && vm.muzzleLight != null)
             {
                 vm.muzzleLight.enabled = true;
