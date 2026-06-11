@@ -32,6 +32,7 @@ namespace Density3.Abilities
                 ? player.playerCamera.transform : transform;
 
             var go = FX.SpawnBolt(cam.position + cam.forward * 0.5f, Element.Void);
+            FX.AddElementTrail(go, Element.Void);
             var proj = go.AddComponent<ThrownAbilityProjectile>();
             proj.fuseSeconds = 2.5f;
             proj.detonateOnImpact = true;

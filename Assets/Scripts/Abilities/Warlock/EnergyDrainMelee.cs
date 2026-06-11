@@ -14,7 +14,7 @@ namespace Density3.Abilities
     /// </summary>
     public class EnergyDrainMelee : AbilityBase
     {
-        public float range = 3.5f;
+        public float range = 5.5f; // D2-style charged-melee lunge reach
         public float castRadius = 1f; // a generous palm — forgiveness over precision
         public float waveSpeed = 30f;
         public float damage = 80f;
@@ -42,7 +42,13 @@ namespace Density3.Abilities
             // the wave self-destructs at max range or on the first surface.
             var wave = FX.SpawnBolt(cam.position + cam.forward * 0.4f, Element.Void);
             wave.name = "VoidPalmWave";
-            wave.transform.localScale = Vector3.one * 0.35f;
+            wave.transform.localScale = Vector3.one * 0.45f;
+            FX.AddElementTrail(wave, Element.Void, 0.35f);
+            var waveLight = wave.AddComponent<Light>();
+            waveLight.type = LightType.Point;
+            waveLight.color = ElementPalette.Base(Element.Void);
+            waveLight.range = 4f;
+            waveLight.intensity = 2.5f;
             var waveProj = wave.AddComponent<ThrownAbilityProjectile>();
             waveProj.gravity = 0f;
             waveProj.detonateOnImpact = true;

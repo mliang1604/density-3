@@ -52,6 +52,7 @@ namespace Density3.Abilities
             var go = FX.SpawnBolt(cam.position + cam.forward * 0.8f, Element.Void);
             go.name = "NovaBomb";
             go.transform.localScale = Vector3.one * 0.6f;
+            FX.AddElementTrail(go, Element.Void, 0.6f);
             var bombLight = go.AddComponent<Light>();
             bombLight.type = LightType.Point;
             bombLight.color = ElementPalette.Base(Element.Void);

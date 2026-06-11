@@ -158,6 +158,24 @@ namespace Density3.Core
             return root;
         }
 
+        /// <summary>Element-colored energy trail for ability projectiles —
+        /// turns a bare bolt into a streak of its element.</summary>
+        public static TrailRenderer AddElementTrail(GameObject host, Element element, float width = 0.3f)
+        {
+            var tr = host.AddComponent<TrailRenderer>();
+            if (lineMaterial == null) lineMaterial = new Material(Shader.Find("Sprites/Default"));
+            tr.material = lineMaterial;
+            tr.time = 0.25f;
+            tr.startWidth = width;
+            tr.endWidth = 0f;
+            Color c = ElementPalette.Base(element);
+            tr.startColor = c;
+            tr.endColor = new Color(c.r, c.g, c.b, 0f);
+            tr.shadowCastingMode = ShadowCastingMode.Off;
+            tr.receiveShadows = false;
+            return tr;
+        }
+
         /// <summary>Flat ground-level circle marking an ability zone's radius
         /// (rifts). Caller-owned — parent it to the zone so they expire
         /// together.</summary>
