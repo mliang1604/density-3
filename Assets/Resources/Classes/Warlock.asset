@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3691932780541288816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Vortex Grenade
+  m_EditorClassIdentifier: 
+  displayName: Vortex Grenade
+  element: 0
+  cooldownSeconds: 45
+  energyOnKill: 0.05
+  startEnergy: 1
+--- !u!114 &-2037101995895444565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Energy Drain
+  m_EditorClassIdentifier: 
+  displayName: Energy Drain
+  element: 0
+  cooldownSeconds: 25
+  energyOnKill: 0.1
+  startEnergy: 1
+--- !u!114 &-1612768722010382257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Nova Bomb
+  m_EditorClassIdentifier: 
+  displayName: Nova Bomb
+  element: 0
+  cooldownSeconds: 300
+  energyOnKill: 0.15
+  startEnergy: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cdd166cbc65093e5328067363aeb7af, type: 3}
+  m_Name: Warlock
+  m_EditorClassIdentifier: 
+  guardianClass: 0
+  className: Warlock
+  element: 0
+  grenade: {fileID: 0}
+  melee: {fileID: 0}
+  classAbility: {fileID: 0}
+  super: {fileID: 0}
+--- !u!114 &3044655445091396460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676ee6e198ec155fc26e3bf2d21042e2, type: 3}
+  m_Name: Healing Rift
+  m_EditorClassIdentifier: 
+  displayName: Healing Rift
+  element: 0
+  cooldownSeconds: 60
+  energyOnKill: 0.05
+  startEnergy: 1
