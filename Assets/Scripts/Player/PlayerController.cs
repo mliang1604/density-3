@@ -27,8 +27,9 @@ namespace Density3.Player
         public float minSlideSpeed = 7.5f;   // must be roughly sprinting to slide
         public float slideSpeed = 14f;       // initial slide burst
         public float slideDuration = 1.4f;
+        public float slideUncrouchGrace = 0.25f; // releases earlier than this don't cancel, so a tap slides fully
+        public float slideCooldown = 0.9f;   // D2-style internal cooldown after a slide ends
         public float slideFriction = 4.5f;   // m/s² the slide bleeds off
-        public float slideSteer = 2.5f;      // rad/s the slide can be steered
         public float slideCameraDip = 0.15f; // extra camera drop while sliding
 
         [Header("Jump")]
@@ -70,6 +71,7 @@ namespace Density3.Player
         private bool isCrouching;
         private bool isSliding;
         private float slideTimer;
+        private float lastSlideEnd = -999f; // far past so the first slide is never gated
         private Vector3 slideDir;
         private float crouchBlend;   // 0 = standing, 1 = fully crouched
         private float standHeight;
@@ -173,13 +175,16 @@ namespace Density3.Player
             Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
             IsSprinting = Input.GetKey(KeyCode.LeftShift) && input.y > 0.1f && !isCrouching && !isSliding;
 
-            // Crouch pressed while sprinting fast on the ground -> slide.
-            if (!isSliding && grounded && Input.GetKeyDown(crouchKey) && horizontal.magnitude >= minSlideSpeed)
+            // Crouch pressed while sprinting fast on the ground -> slide,
+            // unless the previous slide ended too recently.
+            if (!isSliding && grounded && Input.GetKeyDown(crouchKey)
+                && horizontal.magnitude >= minSlideSpeed
+                && Time.time - lastSlideEnd >= slideCooldown)
                 StartSlide(horizontal);
 
             if (isSliding)
             {
-                UpdateSlide(ref horizontal, input, grounded);
+                UpdateSlide(ref horizontal, grounded);
             }
             else
             {
@@ -245,26 +250,27 @@ namespace Density3.Player
             SFX.Play2D(SFX.SlideClip, 0.6f);
         }
 
-        private void UpdateSlide(ref Vector3 horizontal, Vector2 input, bool grounded)
+        private void UpdateSlide(ref Vector3 horizontal, bool grounded)
         {
             slideTimer -= Time.deltaTime;
             float speed = Mathf.Max(0f, horizontal.magnitude - slideFriction * Time.deltaTime);
 
-            // A little steering toward the stick.
-            Vector3 wishDir = transform.right * input.x + transform.forward * input.y;
-            if (wishDir.sqrMagnitude > 0.01f)
-                slideDir = Vector3.RotateTowards(slideDir, wishDir.normalized,
-                    slideSteer * Time.deltaTime, 0f).normalized;
-
+            // The slide is committed to the direction it started in.
             horizontal = slideDir * speed;
 
-            if (slideTimer <= 0f || speed <= crouchSpeed || !grounded)
+            // Ends on timeout, losing speed, leaving the ground, or letting go
+            // of crouch to stand up out of it. A release inside the grace
+            // window doesn't count, so a quick tap still gives a full slide.
+            bool uncrouched = Input.GetKeyUp(crouchKey)
+                && slideDuration - slideTimer > slideUncrouchGrace;
+            if (slideTimer <= 0f || speed <= crouchSpeed || !grounded || uncrouched)
                 EndSlide();
         }
 
         private void EndSlide()
         {
             isSliding = false;
+            lastSlideEnd = Time.time;
             isCrouching = Input.GetKey(crouchKey) || !CanStand();
         }
 

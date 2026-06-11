@@ -3282,9 +3282,7 @@ MonoBehaviour:
   slideSpeed: 14
   slideDuration: 1.4
   slideFriction: 4.5
-  slideSteer: 2.5
   slideCameraDip: 0.15
-  slideRoll: 7
   jumpHeight: 3.5
   doubleJumpHeight: 2.5
   gravity: -24
