@@ -39,6 +39,9 @@ namespace Density3.Weapons
         [Range(0f, 100f)] public float range = 60f;
         [Range(0f, 100f)] public float stability = 55f;
 
+        [Header("Presentation")]
+        public Color tracerColor = new Color(1f, 0.9f, 0.6f, 0.9f);
+
         [Header("Recoil")]
         public float recoilPitchKick = 2.6f;
         public float recoilYawKick = 0.5f;

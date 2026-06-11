@@ -36,13 +36,40 @@ namespace Density3.Weapons
         private float baseFov;
         private float muzzleLightOff;
 
+        private WeaponData overrideData;
+        private int overrideRounds;
+
         public WeaponData Current =>
-            (loadout != null && loadout.Length > 0)
+            overrideData != null ? overrideData
+            : (loadout != null && loadout.Length > 0)
                 ? loadout[Mathf.Clamp(currentIndex, 0, loadout.Length - 1)]
                 : null;
 
-        public int RoundsInMag => magState != null ? magState[currentIndex] : 0;
+        public int RoundsInMag => overrideData != null ? overrideRounds
+            : magState != null ? magState[currentIndex] : 0;
         public bool IsReloading => reloading;
+        public bool IsOverridden => overrideData != null;
+        public int OverrideRoundsLeft => overrideRounds;
+
+        /// <summary>Temporarily replaces the equipped weapon (supers). The
+        /// previous weapon — and its exact mag state — returns on EndOverride.
+        /// Reloading and frame swapping are suspended while active.</summary>
+        public void BeginOverride(WeaponData weapon, int rounds)
+        {
+            overrideData = weapon;
+            overrideRounds = rounds;
+            reloading = false;
+            nextFireTime = Time.time + 0.25f;
+            PushMagnetismStats();
+        }
+
+        public void EndOverride()
+        {
+            overrideData = null;
+            overrideRounds = 0;
+            nextFireTime = Time.time + 0.25f;
+            PushMagnetismStats();
+        }
 
         private void Awake()
         {
@@ -118,23 +145,24 @@ namespace Density3.Weapons
                 magnetism.SetADS(adsNow);
             }
 
-            if (reloading && Time.time >= reloadEndTime)
+            if (!IsOverridden && reloading && Time.time >= reloadEndTime)
             {
                 reloading = false;
                 magState[currentIndex] = data.magazineSize;
                 SFX.Play2D(SFX.ReloadEndClip, 0.6f);
             }
 
-            if (!reloading && Input.GetKeyDown(KeyCode.R) && magState[currentIndex] < data.magazineSize)
+            if (!IsOverridden && !reloading && Input.GetKeyDown(KeyCode.R)
+                && magState[currentIndex] < data.magazineSize)
                 StartReload(data);
 
             // Semi-auto: one shot per click, gated by frame RPM.
             if (!reloading && Input.GetMouseButtonDown(0) && Time.time - player.CursorLockedAt > 0.15f)
             {
-                if (magState[currentIndex] <= 0)
+                if (RoundsInMag <= 0)
                 {
                     SFX.Play2D(SFX.DryFireClip, 0.5f);
-                    StartReload(data);
+                    if (!IsOverridden) StartReload(data);
                 }
                 else if (Time.time >= nextFireTime) Fire(data);
             }
@@ -156,6 +184,7 @@ namespace Density3.Weapons
 
         private void HandleSwitching()
         {
+            if (IsOverridden) return; // the super owns the hands
             for (int i = 0; i < loadout.Length && i < 3; i++)
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1 + i) && i != currentIndex)
@@ -181,7 +210,8 @@ namespace Density3.Weapons
 
         private void Fire(WeaponData data)
         {
-            magState[currentIndex]--;
+            if (IsOverridden) overrideRounds--;
+            else magState[currentIndex]--;
             nextFireTime = Time.time + data.SecondsBetweenShots;
             SFX.PlayGunshot(data.roundsPerMinute, 0.85f);
 
@@ -219,7 +249,7 @@ namespace Density3.Weapons
             Vector3 muzzlePos = (vm != null && vm.muzzlePoint != null)
                 ? vm.muzzlePoint.position
                 : cam.transform.position + dir * 0.4f;
-            FX.SpawnTracer(muzzlePos, end, new Color(1f, 0.9f, 0.6f, 0.9f));
+            FX.SpawnTracer(muzzlePos, end, data.tracerColor);
             if (vm != null && vm.muzzleLight != null)
             {
                 vm.muzzleLight.enabled = true;
