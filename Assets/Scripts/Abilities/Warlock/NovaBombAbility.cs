@@ -16,6 +16,7 @@ namespace Density3.Abilities
     {
         public float castLockSeconds = 0.4f;
         public float projectileSpeed = 14f;
+        public float bombCastRadius = 1.2f; // fat contact check — near misses connect
         public float damage = 400f;
         public float blastRadius = 14.4f;
         public float vortexRadius = 9.6f;
@@ -63,6 +64,7 @@ namespace Density3.Abilities
             proj.gravity = -2f; // heavy float, mostly straight
             proj.fuseSeconds = 6f;
             proj.detonateOnImpact = true;
+            proj.castRadius = bombCastRadius;
             proj.homingTarget = Targeting.NearestToAim(
                 cam.position, cam.forward, trackingConeDegrees, 0f, gameObject);
             proj.homingDegreesPerSecond = trackingTurnRate;
