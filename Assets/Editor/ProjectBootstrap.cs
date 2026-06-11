@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -887,6 +888,68 @@ namespace FableFPS.EditorTools
             string parent = System.IO.Path.GetDirectoryName(path).Replace('\\', '/');
             string name = System.IO.Path.GetFileName(path);
             AssetDatabase.CreateFolder(parent, name);
+        }
+
+        // ----- WebGL build ---------------------------------------------------------
+
+        /// <summary>
+        /// Builds the WASM/WebGL player to Builds/WebGL, configured for static
+        /// hosts like GitHub Pages (decompression fallback, so no special HTTP
+        /// headers are needed). Also force-includes the shaders that FX/SFX code
+        /// creates at runtime via Shader.Find, which would otherwise be stripped.
+        /// </summary>
+        [MenuItem("FableFPS/Build WebGL")]
+        public static void BuildWebGL()
+        {
+            EnsureAlwaysIncludedShaders("Sprites/Default", "Legacy Shaders/Particles/Additive");
+
+            PlayerSettings.WebGL.decompressionFallback = true;
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.runInBackground = true;
+
+            var report = BuildPipeline.BuildPlayer(
+                new[] { ScenePath }, "Builds/WebGL", BuildTarget.WebGL, BuildOptions.None);
+
+            if (report.summary.result == BuildResult.Succeeded)
+            {
+                Debug.Log($"FableFPS: WebGL build succeeded — {report.summary.totalSize / (1024 * 1024)} MB at Builds/WebGL");
+            }
+            else
+            {
+                Debug.LogError($"FableFPS: WebGL build {report.summary.result} — {report.summary.totalErrors} errors");
+                EditorApplication.Exit(1);
+            }
+        }
+
+        /// <summary>Adds shaders to GraphicsSettings' Always Included list so
+        /// runtime Shader.Find calls survive build stripping.</summary>
+        private static void EnsureAlwaysIncludedShaders(params string[] shaderNames)
+        {
+            var settings = AssetDatabase.LoadAssetAtPath<Object>("ProjectSettings/GraphicsSettings.asset");
+            var so = new SerializedObject(settings);
+            var list = so.FindProperty("m_AlwaysIncludedShaders");
+
+            foreach (string name in shaderNames)
+            {
+                var shader = Shader.Find(name);
+                if (shader == null)
+                {
+                    Debug.LogWarning("FableFPS: shader not found: " + name);
+                    continue;
+                }
+
+                bool present = false;
+                for (int i = 0; i < list.arraySize; i++)
+                    if (list.GetArrayElementAtIndex(i).objectReferenceValue == shader) { present = true; break; }
+
+                if (!present)
+                {
+                    list.InsertArrayElementAtIndex(list.arraySize);
+                    list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = shader;
+                }
+            }
+            so.ApplyModifiedProperties();
+            AssetDatabase.SaveAssets();
         }
 
         // ----- Audio import: trim one shot out of a range recording ---------------
