@@ -22,6 +22,7 @@ namespace Density3.Abilities
         public float waveCastRadius = 0.5f;   // forgiving contact check
         public float damage = 160f;           // lethal to a Dreg (150hp); no crits
         [Range(0f, 1f)] public float grenadeRefundOnHit = 0.25f;
+        [Range(0f, 1f)] public float killRefund = 0.5f;
 
         private PlayerController player;
         private PlayerAbilities slots;
@@ -67,8 +68,10 @@ namespace Density3.Abilities
             if (hb == null)
             {
                 FX.SpawnElementBurst(hit.point, Element.Void, 0.4f);
+                SFX.Play3D(SFX.MeleeImpactClip, hit.point, 0.4f, 5f);
                 return;
             }
+            SFX.Play3D(SFX.MeleeImpactClip, hit.point, 0.85f, 6f);
 
             var targetHealth = hb.owner;
             bool wasAlive = targetHealth != null && !targetHealth.IsDead;
@@ -79,9 +82,9 @@ namespace Density3.Abilities
             DamageNumbers.Spawn(hit.point, applied, false);
             FX.SpawnElementBurst(hit.point, Element.Void, 0.6f);
 
-            // The drain: hits feed the grenade, kills refund the melee in full.
+            // The drain: hits feed the grenade, kills refund half the melee.
             if (slots != null && slots.grenade != null) slots.grenade.AddEnergy(grenadeRefundOnHit);
-            if (wasAlive && targetHealth.IsDead) AddEnergy(1f);
+            if (wasAlive && targetHealth.IsDead) AddEnergy(killRefund);
         }
     }
 }

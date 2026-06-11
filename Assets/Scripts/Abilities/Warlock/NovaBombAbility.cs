@@ -70,10 +70,10 @@ namespace Density3.Abilities
         {
             AoEDamage.Apply(at, blastRadius, damage, gameObject);
             FX.SpawnElementBurst(at, Element.Void, 2.5f);
-            // Deep 2D crack plus a positioned thump — the boom is borrowed
-            // from the heavy gunshot, pitched down.
+            // Recorded detonation layered over a deep 2D crack (the heavy
+            // gunshot pitched down) for the low end.
+            SFX.Play3D(SFX.AbilityDetonateClip, at, 1f, 14f);
             SFX.Play2D(SFX.GunshotFor(100f), 0.9f, 0.6f);
-            SFX.Play3D(SFX.BoltImpactClip, at, 1f, 12f);
 
             // Vortex Nova: the blast leaves a churning vortex behind, which
             // also demarks the danger radius on the ground.

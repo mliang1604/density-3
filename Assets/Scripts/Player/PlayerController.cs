@@ -257,7 +257,11 @@ namespace Density3.Player
                     // Warlock Strafe Glide: toggle a floaty, fully steerable
                     // descent. Space again (or landing) ends it.
                     isGliding = !isGliding;
-                    if (isGliding && velocity.y < 0f) velocity.y *= 0.3f; // catch the fall
+                    if (isGliding)
+                    {
+                        if (velocity.y < 0f) velocity.y *= 0.3f; // catch the fall
+                        SFX.Play2D(SFX.GlideStartClip, 0.45f);
+                    }
                 }
                 else if (airJumpsLeft > 0)
                 {

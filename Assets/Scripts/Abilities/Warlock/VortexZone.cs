@@ -36,6 +36,7 @@ namespace Density3.Abilities
             // point; parenting only ties its lifetime to the zone.
             FX.SpawnEnergySphere(transform.position, Element.Void, radius)
                 .transform.SetParent(transform, true);
+            SFX.AttachLoop(gameObject, SFX.VortexLoopClip, 0.7f, radius * 1.5f);
         }
 
         private void Update()

@@ -84,7 +84,58 @@ namespace Density3.Core
         public static void Prewarm()
         {
             EnsureClips();
+            EnsureFileClips();
             NextSource();
+        }
+
+        // ----- File-backed clips (Assets/Resources/SFX) ----------------------
+        // Trimmed recordings (Krotos Fundamentals library) layered on top of
+        // the synthesized set. Missing files fall back to synth equivalents,
+        // so a clone without the folder still sounds right; loops have no
+        // synth fallback and simply don't play.
+
+        private static bool fileClipsLoaded;
+        private static AudioClip abilityDetonateFile;
+        private static AudioClip meleeImpactFile;
+        private static AudioClip vortexLoopFile;
+        private static AudioClip riftLoopFile;
+        private static AudioClip glideStartFile;
+
+        public static AudioClip AbilityDetonateClip
+        { get { EnsureFileClips(); EnsureClips(); return abilityDetonateFile != null ? abilityDetonateFile : boltImpact; } }
+        public static AudioClip MeleeImpactClip
+        { get { EnsureFileClips(); EnsureClips(); return meleeImpactFile != null ? meleeImpactFile : bodyHit; } }
+        public static AudioClip GlideStartClip
+        { get { EnsureFileClips(); EnsureClips(); return glideStartFile != null ? glideStartFile : strafeJump; } }
+        public static AudioClip VortexLoopClip { get { EnsureFileClips(); return vortexLoopFile; } }
+        public static AudioClip RiftLoopClip { get { EnsureFileClips(); return riftLoopFile; } }
+
+        private static void EnsureFileClips()
+        {
+            if (fileClipsLoaded) return;
+            fileClipsLoaded = true;
+            abilityDetonateFile = Resources.Load<AudioClip>("SFX/AbilityDetonate");
+            meleeImpactFile = Resources.Load<AudioClip>("SFX/MeleeImpact");
+            vortexLoopFile = Resources.Load<AudioClip>("SFX/VortexLoop");
+            riftLoopFile = Resources.Load<AudioClip>("SFX/RiftLoop");
+            glideStartFile = Resources.Load<AudioClip>("SFX/GlideStart");
+        }
+
+        /// <summary>Looping positioned source tied to the host's lifetime
+        /// (vortex churn, rift shimmer). No-op when the clip is null.</summary>
+        public static AudioSource AttachLoop(GameObject host, AudioClip clip, float volume, float minDistance = 3f)
+        {
+            if (clip == null) return null;
+            var src = host.AddComponent<AudioSource>();
+            src.clip = clip;
+            src.loop = true;
+            src.playOnAwake = false;
+            src.volume = volume;
+            src.spatialBlend = 1f;
+            src.minDistance = minDistance;
+            src.rolloffMode = AudioRolloffMode.Logarithmic;
+            src.Play();
+            return src;
         }
 
         // ----- Playback ----------------------------------------------------

@@ -40,6 +40,7 @@ namespace Density3.Abilities
             {
                 AoEDamage.Apply(at, vortexRadius, detonateDamage, gameObject);
                 FX.SpawnElementBurst(at, Element.Void, 1.2f);
+                SFX.Play3D(SFX.AbilityDetonateClip, at, 0.9f, 8f);
                 var zone = new GameObject("VortexZone").AddComponent<VortexZone>();
                 zone.transform.position = at;
                 zone.Configure(vortexDamagePerTick, vortexRadius, vortexSeconds, gameObject);

@@ -82,6 +82,7 @@ namespace Density3.Abilities
                 if (applied > 0f) DamageNumbers.Spawn(hit.point, applied, false);
             }
             FX.SpawnImpact(hit.point, hit.normal);
+            SFX.Play3D(SFX.MeleeImpactClip, hit.point, 0.6f, 5f);
         }
     }
 }
