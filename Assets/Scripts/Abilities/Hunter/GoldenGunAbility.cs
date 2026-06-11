@@ -23,7 +23,6 @@ namespace Density3.Abilities
         public float explosionRadius = 4f;
         public float chainDelaySeconds = 0.15f; // the chain reads as a cascade, not one blast
         public float shotTrailSeconds = 1.6f;   // the shot line hangs in the air
-        [Range(0f, 1f)] public float superKillRefund = 0.05f; // bonus super energy per kill while drawn
 
         private HandCannon weapon;
         private PlayerController player;
@@ -49,7 +48,7 @@ namespace Density3.Abilities
             weapon.BeginOverride(goldenData, rounds, goldenViewmodel);
             weapon.TargetKilled += OnGunKill;
             weapon.ShotFired += OnGoldenShot;
-            GameEvents.EnemyKilled += OnSuperKill;
+            suppressKillEnergy = true; // golden kills must not refund the super
             active = true;
             endTime = Time.time + durationSeconds;
 
@@ -110,15 +109,12 @@ namespace Density3.Abilities
             proj.Launch(path.normalized * speed);
         }
 
-        /// <summary>Kills while the super is in effect feed the next super.</summary>
-        private void OnSuperKill() => AddEnergy(superKillRefund);
-
         private void EndGoldenGun()
         {
             active = false;
+            suppressKillEnergy = false;
             weapon.TargetKilled -= OnGunKill;
             weapon.ShotFired -= OnGoldenShot;
-            GameEvents.EnemyKilled -= OnSuperKill;
             if (weapon.IsOverridden) weapon.EndOverride(); // re-shows the frame model
             if (goldenViewmodel != null)
             {

@@ -22,7 +22,6 @@ namespace Density3.Abilities
         public float chainDamage = 60f;
         public float aftershockDamagePerTick = 15f;
         public float aftershockSeconds = 4f;
-        [Range(0f, 1f)] public float superKillRefund = 0.05f; // bonus super energy per kill while roaming
         public float leapForward = 8f;
         public float leapUp = 6f;
         public float diveDown = 18f;
@@ -46,7 +45,7 @@ namespace Density3.Abilities
         {
             active = true;
             endTime = Time.time + durationSeconds;
-            GameEvents.EnemyKilled += OnSuperKill;
+            suppressKillEnergy = true; // slam kills must not refund the super
 
             if (weapon != null)
             {
@@ -113,14 +112,11 @@ namespace Density3.Abilities
             if (player != null) player.AddRecoil(4f, 0.8f);
         }
 
-        /// <summary>Kills while the super is in effect feed the next super.</summary>
-        private void OnSuperKill() => AddEnergy(superKillRefund);
-
         private void EndSuper()
         {
             active = false;
             slamPending = false;
-            GameEvents.EnemyKilled -= OnSuperKill;
+            suppressKillEnergy = false;
             if (player != null) player.SpeedScale = 1f;
             if (weapon != null) weapon.SetHolstered(false);
             if (fistArcs != null)
