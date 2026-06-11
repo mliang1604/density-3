@@ -73,6 +73,8 @@ namespace Density3.Player
         private float slideTimer;
         private float lastSlideEnd = -999f; // far past so the first slide is never gated
         private Vector3 slideDir;
+        private Vector3 overrideVelocity;
+        private float overrideTimer;
         private float crouchBlend;   // 0 = standing, 1 = fully crouched
         private float standHeight;
         private float standCenterY;
@@ -80,6 +82,7 @@ namespace Density3.Player
 
         public bool IsCrouching => isCrouching;
         public bool IsSliding => isSliding;
+        public bool MovementOverridden => overrideTimer > 0f;
 
         private void Awake()
         {
@@ -123,6 +126,22 @@ namespace Density3.Player
 
         public void SetRecoilRecovery(float speed) => recoilRecovery = speed;
 
+        /// <summary>Instantaneous velocity change (super slams, knockback).</summary>
+        public void AddImpulse(Vector3 impulse) => velocity += impulse;
+
+        /// <summary>
+        /// Drives horizontal movement at a fixed velocity for a short window
+        /// (dodges, shoulder charges), suspending input control. Gravity and
+        /// jumps still apply; the velocity's y component is ignored. Cancels
+        /// any slide in progress.
+        /// </summary>
+        public void OverrideMove(Vector3 moveVelocity, float seconds)
+        {
+            overrideVelocity = moveVelocity;
+            overrideTimer = seconds;
+            if (isSliding) EndSlide();
+        }
+
         public void ResetLook(float newYaw)
         {
             yaw = newYaw;
@@ -131,6 +150,7 @@ namespace Density3.Player
             isSliding = false;
             isCrouching = false;
             velocity = Vector3.zero;
+            overrideTimer = 0f;
         }
 
         private void LockCursor()
@@ -175,28 +195,38 @@ namespace Density3.Player
             Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
             IsSprinting = Input.GetKey(KeyCode.LeftShift) && input.y > 0.1f && !isCrouching && !isSliding;
 
-            // Crouch pressed while sprinting fast on the ground -> slide,
-            // unless the previous slide ended too recently.
-            if (!isSliding && grounded && Input.GetKeyDown(crouchKey)
-                && horizontal.magnitude >= minSlideSpeed
-                && Time.time - lastSlideEnd >= slideCooldown)
-                StartSlide(horizontal);
-
-            if (isSliding)
+            if (overrideTimer > 0f)
             {
-                UpdateSlide(ref horizontal, grounded);
+                // Ability-driven movement (dodge, shoulder charge) owns the
+                // horizontal until its window ends.
+                overrideTimer -= Time.deltaTime;
+                horizontal = new Vector3(overrideVelocity.x, 0f, overrideVelocity.z);
             }
             else
             {
-                // Hold to crouch; stay crouched if there's no headroom to stand.
-                isCrouching = Input.GetKey(crouchKey) || (isCrouching && !CanStand());
+                // Crouch pressed while sprinting fast on the ground -> slide,
+                // unless the previous slide ended too recently.
+                if (!isSliding && grounded && Input.GetKeyDown(crouchKey)
+                    && horizontal.magnitude >= minSlideSpeed
+                    && Time.time - lastSlideEnd >= slideCooldown)
+                    StartSlide(horizontal);
 
-                float targetSpeed = (isCrouching ? crouchSpeed
-                    : IsSprinting ? sprintSpeed : walkSpeed) * SpeedScale;
-                Vector3 wishDir = transform.right * input.x + transform.forward * input.y;
-                float control = grounded ? 1f : airControl;
-                horizontal = Vector3.MoveTowards(horizontal, wishDir * targetSpeed,
-                    acceleration * control * Time.deltaTime);
+                if (isSliding)
+                {
+                    UpdateSlide(ref horizontal, grounded);
+                }
+                else
+                {
+                    // Hold to crouch; stay crouched if there's no headroom to stand.
+                    isCrouching = Input.GetKey(crouchKey) || (isCrouching && !CanStand());
+
+                    float targetSpeed = (isCrouching ? crouchSpeed
+                        : IsSprinting ? sprintSpeed : walkSpeed) * SpeedScale;
+                    Vector3 wishDir = transform.right * input.x + transform.forward * input.y;
+                    float control = grounded ? 1f : airControl;
+                    horizontal = Vector3.MoveTowards(horizontal, wishDir * targetSpeed,
+                        acceleration * control * Time.deltaTime);
+                }
             }
 
             velocity.x = horizontal.x;
