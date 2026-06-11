@@ -112,7 +112,7 @@ namespace Density3.EditorTools
 
         // ----- Scene -------------------------------------------------------------
 
-        private static void BuildScene(Mats mats, GameObject playerPrefab, GameObject dummyPrefab,
+        private static void BuildScene(Mats mats, GameObject playerPrefab,
             GameObject dregPrefab, GameObject hudPrefab)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
@@ -137,25 +137,16 @@ namespace Density3.EditorTools
             var player = (GameObject)PrefabUtility.InstantiatePrefab(playerPrefab);
             player.transform.position = new Vector3(0f, 1.2f, -45f);
 
-            var targets = new GameObject("TargetRange").transform;
-            PlaceDummy(dummyPrefab, targets, new Vector3(-9f, 0f, -35f));  // 10 m
-            PlaceDummy(dummyPrefab, targets, new Vector3(-3f, 0f, -25f));  // 20 m
-            PlaceDummy(dummyPrefab, targets, new Vector3(3f, 0f, -10f));   // 35 m
-            PlaceDummy(dummyPrefab, targets, new Vector3(9f, 0f, 5f));     // 50 m
-
-            var mover = PlaceDummy(dummyPrefab, targets, new Vector3(16f, 0f, -25f));
-            mover.name = "TargetDummy_Moving";
-            var pp = mover.AddComponent<PingPongMover>();
-            pp.pointA = new Vector3(12f, 0f, -25f);
-            pp.pointB = new Vector3(24f, 0f, -25f);
-            pp.speed = 5f;
-
             var enemies = new GameObject("Enemies").transform;
             Vector3[] posts =
             {
                 new Vector3(-20f, 0f, 12f),
                 new Vector3(2f, 0f, 30f),
-                new Vector3(22f, 0f, 15f)
+                new Vector3(22f, 0f, 15f),
+                new Vector3(-10f, 0f, 40f),
+                new Vector3(14f, 0f, 38f),
+                new Vector3(-28f, 0f, 28f),
+                new Vector3(32f, 0f, 30f)
             };
             foreach (var p in posts)
             {

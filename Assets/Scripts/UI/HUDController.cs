@@ -37,19 +37,21 @@ namespace Density3.UI
         private PlayerController playerController;
         private float vignetteAlpha;
         private int kills;
-        private int lastAirJumps; // 0 forces a hint refresh on the first frame
+        private bool jumpHintSet;
         private Font font;
         private int fpsFrames;
         private float fpsTimer;
 
-        private const float SuperBarWidth = 240f;
-        private const float AbilityBarWidth = 140f;
+        private const float SuperSize = 56f;
+        private const float AbilitySize = 34f;
         private PlayerAbilities abilities;
         private bool abilitiesBound;
         private Color abilityTint = new Color(0.92f, 0.96f, 1f, 0.95f);
         private readonly float[] readyFlash = new float[4]; // super, grenade, melee, class
         private AbilityBase[] boundAbilities;
         private Action<bool>[] readyHandlers;
+        private Color vignetteBaseColor = new Color(0.7f, 0f, 0f);
+        private Sprite iconRingSprite;
 
         private void Start()
         {
@@ -61,6 +63,8 @@ namespace Density3.UI
             }
             if (playerHealth != null) playerHealth.Damaged += OnPlayerDamaged;
             GameEvents.EnemyKilled += OnEnemyKilled;
+
+            if (vignette != null) vignetteBaseColor = vignette.color;
 
             // The ring sprite is procedural; regenerate if the prefab doesn't have one.
             if (crosshairRing != null)
@@ -131,26 +135,47 @@ namespace Density3.UI
                 fpsTimer = 0f;
             }
 
-            // Keep the [Space] hint in sync with the current jump type.
-            if (hintText != null && playerController != null && playerController.airJumps != lastAirJumps)
+            // The jump style is fixed per class; set the hint once.
+            if (hintText != null && playerController != null && !jumpHintSet)
             {
-                lastAirJumps = playerController.airJumps;
-                hintText.text = HintText(lastAirJumps == 2 ? "triple jump" : "strafe jump");
+                jumpHintSet = true;
+                hintText.text = HintText(
+                    playerController.jumpStyle == JumpStyle.Glide ? "glide"
+                    : playerController.jumpStyle == JumpStyle.TripleJump ? "triple jump"
+                    : "strafe jump");
             }
         }
 
         /// <summary>The control-hint line; the [Space] entry names the active jump type.</summary>
         private static string HintText(string jumpName) =>
             "[1][2][3] swap frame   [R] reload   [RMB] aim   [Shift] sprint   [C] crouch/slide"
-            + "   [Space] " + jumpName + "   [J] toggle jump type   [hold Backspace] exit";
+            + "   [Space] " + jumpName + "   [hold Backspace] exit";
 
         public void ShowRespawnOverlay(bool show)
         {
             if (respawnText != null) respawnText.gameObject.SetActive(show);
         }
 
-        private void OnPlayerDamaged(DamageInfo info) =>
+        /// <summary>One-off colored vignette pulse (super casts and the like).
+        /// The next damage pulse restores the standard red.</summary>
+        public void PulseVignette(Color tint, float alpha)
+        {
+            if (vignette == null) return;
+            tint.a = vignette.color.a;
+            vignette.color = tint;
+            vignetteAlpha = Mathf.Max(vignetteAlpha, alpha);
+        }
+
+        private void OnPlayerDamaged(DamageInfo info)
+        {
+            if (vignette != null)
+            {
+                Color c = vignetteBaseColor;
+                c.a = vignette.color.a;
+                vignette.color = c;
+            }
             vignetteAlpha = Mathf.Min(0.5f, vignetteAlpha + 0.3f);
+        }
 
         private void OnEnemyKilled()
         {
@@ -201,20 +226,26 @@ namespace Density3.UI
 
         private void UpdateAbilityMeters()
         {
-            SetMeter(superFill, 0, SuperBarWidth);
-            SetMeter(grenadeFill, 1, AbilityBarWidth);
-            SetMeter(meleeFill, 2, AbilityBarWidth);
-            SetMeter(classFill, 3, AbilityBarWidth);
+            SetMeter(superFill, 0, SuperSize);
+            SetMeter(grenadeFill, 1, AbilitySize);
+            SetMeter(meleeFill, 2, AbilitySize);
+            SetMeter(classFill, 3, AbilitySize);
         }
 
-        private void SetMeter(Image fill, int slot, float width)
+        private void SetMeter(Image fill, int slot, float iconSize)
         {
             if (fill == null) return;
             float energy = boundAbilities != null && boundAbilities[slot] != null
                 ? boundAbilities[slot].Energy : 0f;
             readyFlash[slot] = Mathf.MoveTowards(readyFlash[slot], 0f, 2f * Time.deltaTime);
-            fill.rectTransform.sizeDelta = new Vector2((width - 2f) * energy, -2f);
-            fill.color = Color.Lerp(abilityTint, Color.white, readyFlash[slot]);
+
+            // Destiny-style: the icon fills bottom-to-top while charging, dim,
+            // then goes bright at full; the ready moment also flashes white.
+            fill.rectTransform.sizeDelta = new Vector2(-4f, (iconSize - 4f) * energy);
+            float brightness = energy >= 1f ? 1f : 0.55f;
+            var c = new Color(abilityTint.r * brightness, abilityTint.g * brightness,
+                abilityTint.b * brightness, abilityTint.a);
+            fill.color = Color.Lerp(c, Color.white, readyFlash[slot]);
         }
 
         // ----- One-time layout construction (called by the editor bootstrap; the
@@ -289,38 +320,111 @@ namespace Density3.UI
             respawnText.gameObject.SetActive(false);
         }
 
-        /// <summary>Bottom-left ability meters: super bar on top, then the
-        /// grenade/melee/class rows, each tagged with its key bind. Fills are
-        /// element-tinted once the loadout binds. Called from BuildLayout and,
-        /// for prefabs that predate it, from Start.</summary>
+        /// <summary>Destiny-style bottom-left ability cluster: a large diamond
+        /// super icon beside a row of square grenade/melee/class icons, each
+        /// filling bottom-to-top with energy (dim while charging, bright when
+        /// ready) and carrying its key bind as the glyph. Called from
+        /// BuildLayout and, for prefabs that predate it, from Start.</summary>
         private void MakeAbilityMeters(Transform root)
         {
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            superFill = MakeMeter(root, "Super", "Q", new Vector2(40f, 88f), new Vector2(SuperBarWidth, 10f));
-            grenadeFill = MakeMeter(root, "Grenade", "G", new Vector2(40f, 64f), new Vector2(AbilityBarWidth, 8f));
-            meleeFill = MakeMeter(root, "Melee", "V", new Vector2(40f, 46f), new Vector2(AbilityBarWidth, 8f));
-            classFill = MakeMeter(root, "Class", "F", new Vector2(40f, 28f), new Vector2(AbilityBarWidth, 8f));
+            superFill = MakeAbilityIcon(root, "Super", "Q", new Vector2(72f, 78f), SuperSize, 45f, 0);
+            grenadeFill = MakeAbilityIcon(root, "Grenade", "G", new Vector2(140f, 78f), AbilitySize, 0f, 1);
+            meleeFill = MakeAbilityIcon(root, "Melee", "V", new Vector2(184f, 78f), AbilitySize, 0f, 2);
+            classFill = MakeAbilityIcon(root, "Class", "F", new Vector2(228f, 78f), AbilitySize, 0f, 3);
         }
 
-        private Image MakeMeter(Transform root, string name, string key, Vector2 pos, Vector2 size)
+        private Image MakeAbilityIcon(Transform root, string name, string key, Vector2 center,
+            float size, float rotation, int glyphSlot)
         {
-            var label = MakeText(root, name + "Key", 12, TextAnchor.MiddleLeft);
-            Anchor(label.rectTransform, new Vector2(0f, 0f), pos, new Vector2(14f, size.y + 4f));
-            label.text = key;
-            label.color = new Color(1f, 1f, 1f, 0.55f);
-
             var bg = MakeImage(root, name + "BG", new Color(0f, 0f, 0f, 0.55f));
-            Anchor(bg.rectTransform, new Vector2(0f, 0f), pos + new Vector2(18f, 0f), size);
+            var bgRect = bg.rectTransform;
+            bgRect.anchorMin = bgRect.anchorMax = new Vector2(0f, 0f);
+            bgRect.pivot = new Vector2(0.5f, 0.5f);
+            bgRect.anchoredPosition = center;
+            bgRect.sizeDelta = new Vector2(size, size);
+            bgRect.localRotation = Quaternion.Euler(0f, 0f, rotation);
 
-            // Same left-anchored fill idiom as HealthFill: width scales with energy.
-            var fill = MakeImage(bg.rectTransform, name + "Fill", new Color(0.92f, 0.96f, 1f, 0.95f));
+            // The fill grows upward inside the icon — through the rotated
+            // super diamond that reads as point-to-point, like D2's.
+            var fill = MakeImage(bgRect, name + "Fill", new Color(0.92f, 0.96f, 1f, 0.95f));
             var fr = fill.rectTransform;
             fr.anchorMin = new Vector2(0f, 0f);
-            fr.anchorMax = new Vector2(0f, 1f);
-            fr.pivot = new Vector2(0f, 0.5f);
-            fr.anchoredPosition = new Vector2(1f, 0f);
-            fr.sizeDelta = new Vector2(size.x - 2f, -2f);
+            fr.anchorMax = new Vector2(1f, 0f);
+            fr.pivot = new Vector2(0.5f, 0f);
+            fr.anchoredPosition = new Vector2(0f, 2f);
+            fr.sizeDelta = new Vector2(-4f, 0f);
+
+            // Key bind sits below the icon (clear of the diamond's point).
+            float half = rotation != 0f ? size * 0.7071f : size * 0.5f;
+            var keyLabel = MakeText(root, name + "Key", 11, TextAnchor.MiddleCenter);
+            keyLabel.text = key;
+            keyLabel.color = new Color(1f, 1f, 1f, 0.55f);
+            var kr = keyLabel.rectTransform;
+            kr.anchorMin = kr.anchorMax = new Vector2(0f, 0f);
+            kr.pivot = new Vector2(0.5f, 0.5f);
+            kr.anchoredPosition = center + new Vector2(0f, -(half + 9f));
+            kr.sizeDelta = new Vector2(40f, 14f);
+
+            // Slot glyph, counter-rotated upright, drawn over the fill.
+            var glyphGO = new GameObject(name + "Icon", typeof(RectTransform));
+            var gr = glyphGO.GetComponent<RectTransform>();
+            gr.SetParent(bgRect, false);
+            gr.anchorMin = Vector2.zero;
+            gr.anchorMax = Vector2.one;
+            gr.offsetMin = Vector2.zero;
+            gr.offsetMax = Vector2.zero;
+            gr.localRotation = Quaternion.Euler(0f, 0f, -rotation);
+            BuildSlotGlyph(gr, glyphSlot);
             return fill;
+        }
+
+        /// <summary>Tiny procedural slot icons — no art assets, same philosophy
+        /// as the crosshair sprite: a nova burst, a grenade orb, a melee slash,
+        /// a rift ellipse.</summary>
+        private void BuildSlotGlyph(RectTransform parent, int slot)
+        {
+            if (iconRingSprite == null) iconRingSprite = MakeRingSprite(64, 26f, 4f);
+            var c = new Color(1f, 1f, 1f, 0.92f);
+            switch (slot)
+            {
+                case 0: // super: a nova burst
+                    GlyphBar(parent, new Vector2(26f, 2.5f), 0f, c);
+                    GlyphBar(parent, new Vector2(26f, 2.5f), 60f, c);
+                    GlyphBar(parent, new Vector2(26f, 2.5f), 120f, c);
+                    break;
+                case 1: // grenade: an orb
+                    GlyphRing(parent, new Vector2(16f, 16f), c);
+                    var dot = MakeImage(parent, "Dot", c);
+                    SetCenter(dot.rectTransform, Vector2.zero, new Vector2(5f, 5f));
+                    break;
+                case 2: // melee: claw slashes
+                    GlyphBar(parent, new Vector2(18f, 2.5f), 45f, c, new Vector2(-2.5f, 2.5f));
+                    GlyphBar(parent, new Vector2(18f, 2.5f), 45f, c, new Vector2(2.5f, -2.5f));
+                    break;
+                case 3: // class ability: a rift ellipse
+                    var ring = GlyphRing(parent, new Vector2(20f, 20f), c);
+                    ring.rectTransform.localScale = new Vector3(1f, 0.5f, 1f);
+                    break;
+            }
+        }
+
+        private void GlyphBar(RectTransform parent, Vector2 size, float rot, Color c, Vector2 pos = default)
+        {
+            var img = MakeImage(parent, "Bar", c);
+            var r = img.rectTransform;
+            r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
+            r.anchoredPosition = pos;
+            r.sizeDelta = size;
+            r.localRotation = Quaternion.Euler(0f, 0f, rot);
+        }
+
+        private Image GlyphRing(RectTransform parent, Vector2 size, Color c)
+        {
+            var img = MakeImage(parent, "Ring", c);
+            img.sprite = iconRingSprite;
+            SetCenter(img.rectTransform, Vector2.zero, size);
+            return img;
         }
 
         /// <summary>Top-left FPS readout, mirroring the kill counter's placement.

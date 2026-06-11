@@ -28,11 +28,13 @@ namespace Density3.Abilities
             }
         }
 
+        // Warlock pacing tuned for the demo's kill density: short enough that
+        // the kit stays in rotation, with the drain refunds carrying the rest.
         private static readonly AbilitySpec[] warlock =
         {
-            new AbilitySpec("Vortex Grenade", 60f, 0.05f, 1f),
-            new AbilitySpec("Energy Drain", 75f, 0.10f, 1f),
-            new AbilitySpec("Healing Rift", 70f, 0.05f, 1f),
+            new AbilitySpec("Vortex Grenade", 45f, 0.05f, 1f),
+            new AbilitySpec("Energy Drain", 25f, 0.10f, 1f),
+            new AbilitySpec("Healing Rift", 60f, 0.05f, 1f),
             new AbilitySpec("Nova Bomb", 300f, 0.15f, 0f)
         };
 

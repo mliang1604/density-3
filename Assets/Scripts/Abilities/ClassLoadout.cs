@@ -1,5 +1,6 @@
 using UnityEngine;
 using Density3.Core;
+using Density3.Player;
 
 namespace Density3.Abilities
 {
@@ -24,21 +25,52 @@ namespace Density3.Abilities
 
             var slots = GetComponent<PlayerAbilities>();
             if (slots == null) slots = gameObject.AddComponent<PlayerAbilities>();
-            slots.grenade = Attach(Active.grenade);
-            slots.melee = Attach(Active.melee);
-            slots.classAbility = Attach(Active.classAbility);
-            slots.super = Attach(Active.super);
+            slots.grenade = Attach(Active.grenade, AbilitySlot.Grenade);
+            slots.melee = Attach(Active.melee, AbilitySlot.Melee);
+            slots.classAbility = Attach(Active.classAbility, AbilitySlot.ClassAbility);
+            slots.super = Attach(Active.super, AbilitySlot.Super);
+
+            // Class movement identity: Warlocks glide. The strafe/triple jump
+            // implementations stay in PlayerController for the Hunter kit (M3).
+            var pc = GetComponent<PlayerController>();
+            if (pc != null)
+                pc.jumpStyle = Active.guardianClass == GuardianClass.Warlock
+                    ? JumpStyle.Glide : JumpStyle.StrafeJump;
         }
 
-        // Placeholder component until the class kits land (M2-M4 swap in
-        // concrete AbilityBase subclasses per slot).
-        private AbilityBase Attach(AbilityData data)
+        private AbilityBase Attach(AbilityData data, AbilitySlot slot)
         {
-            if (data == null) return null;
-            var a = gameObject.AddComponent<DebugAbility>();
-            a.autoActivate = false;
-            a.Bind(data);
-            return a;
+            if (data == null)
+            {
+                // A baked ClassData with a hole means a broken bake — say so
+                // instead of silently leaving the slot dead.
+                Debug.LogWarning("ClassLoadout: " + Active.className + " has no "
+                    + slot + " AbilityData — slot disabled.", this);
+                return null;
+            }
+            var ability = CreateAbility(slot);
+            ability.Bind(data);
+            return ability;
+        }
+
+        /// <summary>Concrete kit components per class. Classes whose kits
+        /// haven't landed yet get the DebugAbility placeholder.</summary>
+        private AbilityBase CreateAbility(AbilitySlot slot)
+        {
+            if (Active.guardianClass == GuardianClass.Warlock)
+            {
+                switch (slot)
+                {
+                    case AbilitySlot.Grenade: return gameObject.AddComponent<VortexGrenadeAbility>();
+                    case AbilitySlot.Melee: return gameObject.AddComponent<EnergyDrainMelee>();
+                    case AbilitySlot.ClassAbility: return gameObject.AddComponent<HealingRiftAbility>();
+                    case AbilitySlot.Super: return gameObject.AddComponent<NovaBombAbility>();
+                }
+            }
+
+            var placeholder = gameObject.AddComponent<DebugAbility>();
+            placeholder.autoActivate = false;
+            return placeholder;
         }
 
         private static ClassData RuntimeDefault(GuardianClass g)

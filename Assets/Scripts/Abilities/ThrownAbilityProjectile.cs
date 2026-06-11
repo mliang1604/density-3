@@ -19,6 +19,16 @@ namespace Density3.Abilities
         public float fuseSeconds = 2f;
         public bool stickToSurface;
         public bool detonateOnImpact = true;
+        [Tooltip("Optional in-flight steering toward homingTarget, degrees/second. 0 = ballistic.")]
+        public float homingDegreesPerSecond;
+        public Transform homingTarget;
+        [Tooltip("Spherecast radius for contact checks. 0 = thin ray.")]
+        public float castRadius;
+
+        /// <summary>Raised with the full RaycastHit on any surface contact,
+        /// before stick/detonate handling — payloads that need the collider
+        /// (Hitbox routing, crits) subscribe here.</summary>
+        public event Action<RaycastHit> Impacted;
 
         /// <summary>Hit point and surface normal, when stickToSurface lands.</summary>
         public event Action<Vector3, Vector3> Stuck;
@@ -53,11 +63,24 @@ namespace Density3.Abilities
             }
             if (stuck) return;
 
+            if (homingTarget != null && homingDegreesPerSecond > 0f)
+            {
+                Vector3 toTarget = homingTarget.position + Vector3.up - transform.position;
+                vel = Vector3.RotateTowards(vel, toTarget.normalized * vel.magnitude,
+                    homingDegreesPerSecond * Mathf.Deg2Rad * Time.deltaTime, 0f);
+            }
+
             vel.y += gravity * Time.deltaTime;
             float step = vel.magnitude * Time.deltaTime;
-            if (Physics.Raycast(transform.position, vel.normalized, out RaycastHit hit, step + 0.03f,
-                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            RaycastHit hit;
+            bool contact = castRadius > 0f
+                ? Physics.SphereCast(transform.position, castRadius, vel.normalized, out hit,
+                    step + 0.03f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                : Physics.Raycast(transform.position, vel.normalized, out hit, step + 0.03f,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (contact)
             {
+                Impacted?.Invoke(hit);
                 if (stickToSurface)
                 {
                     transform.position = hit.point + hit.normal * 0.02f;
