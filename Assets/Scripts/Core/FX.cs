@@ -214,13 +214,18 @@ namespace Density3.Core
         }
 
         /// <summary>Element-colored energy trail for ability projectiles —
-        /// turns a bare bolt into a streak of its element.</summary>
-        public static TrailRenderer AddElementTrail(GameObject host, Element element, float width = 0.3f)
+        /// turns a bare bolt into a streak of its element. Lives on a child
+        /// object so the projectile can release it at impact to fade out in
+        /// the world instead of vanishing with the host.</summary>
+        public static TrailRenderer AddElementTrail(GameObject host, Element element,
+            float width = 0.3f, float seconds = 0.25f)
         {
-            var tr = host.AddComponent<TrailRenderer>();
+            var go = new GameObject("Trail");
+            go.transform.SetParent(host.transform, false);
+            var tr = go.AddComponent<TrailRenderer>();
             if (lineMaterial == null) lineMaterial = new Material(Shader.Find("Sprites/Default"));
             tr.material = lineMaterial;
-            tr.time = 0.25f;
+            tr.time = seconds;
             tr.startWidth = width;
             tr.endWidth = 0f;
             Color c = ElementPalette.Base(element);

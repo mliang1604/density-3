@@ -22,6 +22,7 @@ namespace Density3.Abilities
         public float explosionDamage = 160f;
         public float explosionRadius = 4f;
         public float chainDelaySeconds = 0.15f; // the chain reads as a cascade, not one blast
+        public float shotTrailSeconds = 1.6f;   // the shot line hangs in the air
 
         private HandCannon weapon;
         private PlayerController player;
@@ -95,7 +96,7 @@ namespace Density3.Abilities
             var bolt = FX.SpawnBolt(muzzle, Element.Solar);
             bolt.name = "GoldenShot";
             bolt.transform.localScale = Vector3.one * 0.3f;
-            FX.AddElementTrail(bolt, Element.Solar, 0.45f);
+            FX.AddElementTrail(bolt, Element.Solar, 0.45f, shotTrailSeconds);
 
             Vector3 path = end - muzzle;
             const float speed = 90f;

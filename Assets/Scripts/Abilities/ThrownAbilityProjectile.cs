@@ -108,6 +108,15 @@ namespace Density3.Abilities
         {
             live = false;
             Detonated?.Invoke(at);
+
+            // Release any trail into the world so it fades out over its own
+            // time instead of vanishing with the projectile.
+            var trail = GetComponentInChildren<TrailRenderer>();
+            if (trail != null)
+            {
+                trail.transform.SetParent(null, true);
+                Destroy(trail.gameObject, trail.time);
+            }
             Destroy(gameObject);
         }
     }
