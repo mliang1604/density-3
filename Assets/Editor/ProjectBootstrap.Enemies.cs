@@ -22,6 +22,7 @@ namespace Density3.EditorTools
             public EnemyData dreg;
             public EnemyData vandal;
             public EnemyData shank;
+            public EnemyData exploder;
         }
 
         /// <summary>Bakes one EnemyData asset per archetype into Assets/Enemies —
@@ -34,7 +35,8 @@ namespace Density3.EditorTools
                 // EnemyData's class defaults ARE the classic Dreg tuning.
                 dreg = CreateEnemyData("DregData", d => d.displayName = "Dreg"),
                 vandal = CreateEnemyData("VandalData", VandalEnemy.Configure),
-                shank = CreateEnemyData("ShankData", ShankEnemy.Configure)
+                shank = CreateEnemyData("ShankData", ShankEnemy.Configure),
+                exploder = CreateEnemyData("ExploderShankData", ExploderShankEnemy.Configure)
             };
         }
 
@@ -444,6 +446,7 @@ namespace Density3.EditorTools
             public Material glow;   // eye, thruster wash, gun tips
             public Material accent; // hatch and trim
             public bool guns = true;
+            public bool countsAsKill = true; // off when the brain announces its own kills
         }
 
         /// <summary>
@@ -536,7 +539,7 @@ namespace Density3.EditorTools
 
             var rs = rootGO.AddComponent<Respawner>();
             rs.delay = 6f;
-            rs.countsAsKill = true;
+            rs.countsAsKill = spec.countsAsKill;
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(rootGO, spec.path);
             Object.DestroyImmediate(rootGO);
@@ -572,6 +575,26 @@ namespace Density3.EditorTools
                 data = data,
                 glow = mats.dregEye,
                 accent = mats.shankAccent
+            });
+        }
+
+        // ----- Exploder Shank enemy prefab ----------------------------------------
+
+        /// <summary>Gunless Shank flying at face height, every glow swapped to
+        /// warning red — readable as a bomb the instant it appears.</summary>
+        private static GameObject BuildExploderShankPrefab(Mats mats, EnemyData data)
+        {
+            return BuildShankPrefab(mats, new ShankSpec
+            {
+                path = "Assets/Prefabs/ExploderShankEnemy.prefab",
+                name = "ExploderShankEnemy",
+                brain = typeof(ExploderShankEnemy),
+                data = data,
+                hoverHeight = 1.2f, // flies at the face, so the contact fuse can reach
+                glow = mats.exploderEye,
+                accent = mats.shankAccent,
+                guns = false,
+                countsAsKill = false // the brain announces shot-down kills itself
             });
         }
     }

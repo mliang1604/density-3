@@ -88,9 +88,21 @@ namespace Density3.Enemies
             }
         }
 
+        private bool wasDead;
+
         private void Update()
         {
-            if (health == null || health.IsDead || player == null) return;
+            if (health == null || health.IsDead)
+            {
+                wasDead |= health != null;
+                return;
+            }
+            if (wasDead)
+            {
+                wasDead = false;
+                OnRevived(); // the Respawner revives Health silently
+            }
+            if (player == null) return;
 
             float dt = Time.deltaTime;
             bobPhase += bobSpeed * dt;
@@ -198,5 +210,9 @@ namespace Density3.Enemies
         {
             FX.SpawnElementBurst(transform.position, Element.Arc, 0.8f);
         }
+
+        /// <summary>Runs on the first live frame after a respawn — variants
+        /// reset one-shot state (the Exploder re-arms its fuse).</summary>
+        protected virtual void OnRevived() { }
     }
 }

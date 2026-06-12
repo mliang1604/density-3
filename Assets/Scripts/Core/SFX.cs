@@ -32,6 +32,7 @@ namespace Density3.Core
         private static AudioClip superActivate;
         private static AudioClip jetLoop;
         private static AudioClip sniperCharge;
+        private static AudioClip beep;
 
         public static AudioClip DryFireClip { get { EnsureClips(); return dryFire; } }
         public static AudioClip ReloadStartClip { get { EnsureClips(); return reloadStart; } }
@@ -51,6 +52,7 @@ namespace Density3.Core
         public static AudioClip SuperActivateClip { get { EnsureClips(); return superActivate; } }
         public static AudioClip JetpackLoopClip { get { EnsureClips(); return jetLoop; } }
         public static AudioClip SniperChargeClip { get { EnsureClips(); return sniperCharge; } }
+        public static AudioClip BeepClip { get { EnsureClips(); return beep; } }
 
         public static AudioClip GunshotFor(float rpm)
         {
@@ -234,6 +236,8 @@ namespace Density3.Core
             superActivate = BuildSwell("sfx_super_activate", 1.2f, 0.9f);
             jetLoop = BuildJetThrust("sfx_jet_loop", 1.6f, 0.8f);
             sniperCharge = BuildSniperCharge("sfx_sniper_charge", 1.2f, 0.45f);
+            // The Exploder's warning chirp — played with a rising pitch ramp.
+            beep = BuildDing("sfx_beep", 1180f, 1770f, 0.1f, 0.035f, 0.55f);
         }
 
         /// <summary>Thin rising whine for the Vandal's wire-rifle telegraph —
