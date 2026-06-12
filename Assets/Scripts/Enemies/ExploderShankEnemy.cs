@@ -21,8 +21,14 @@ namespace Density3.Enemies
         public float detonateRange = 2f;
         public float blastRadius = 4.5f;
 
+        [Header("Warning Glow")]
+        public Color glowColor = new Color(1f, 0.5f, 0.1f);
+        public float glowRange = 6f;
+
         private float nextBeep;
         private bool detonated;
+        private Light glow;
+        private float glowPhase;
 
         // The blast is event-driven and self-contained: one overlap, one
         // DamageInfo per distinct Health, no dependency on ability helpers.
@@ -50,6 +56,42 @@ namespace Density3.Enemies
             var d = ScriptableObject.CreateInstance<EnemyData>();
             Configure(d);
             return d;
+        }
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            // Built at runtime so committed prefabs glow without a rebake.
+            var go = new GameObject("WarningGlow");
+            go.transform.SetParent(transform, false);
+            glow = go.AddComponent<Light>();
+            glow.type = LightType.Point;
+            glow.color = glowColor;
+            glow.range = glowRange;
+        }
+
+        /// <summary>Orange warning pulse, beating faster as it closes — the
+        /// visual twin of the beep ramp. The Respawner only toggles renderers
+        /// and colliders, so the light minds its own death state.</summary>
+        private void LateUpdate()
+        {
+            if (glow == null) return;
+            if (health == null || health.IsDead)
+            {
+                glow.enabled = false;
+                return;
+            }
+            glow.enabled = true;
+
+            float urgency = 0f;
+            if (player != null)
+            {
+                float dist = Vector3.Distance(transform.position, player.position);
+                urgency = Mathf.InverseLerp(25f, 3f, dist);
+            }
+            glowPhase += Mathf.Lerp(2.5f, 14f, urgency) * Time.deltaTime;
+            glow.intensity = 1.2f + (0.8f + 1.6f * urgency) * (0.5f + 0.5f * Mathf.Sin(glowPhase));
         }
 
         protected override void Tick(float dist)
@@ -94,7 +136,8 @@ namespace Density3.Enemies
             detonated = true;
 
             Vector3 pos = transform.position;
-            FX.SpawnElementBurst(pos, Element.Arc, 1.8f);
+            // Solar-orange blast — the payoff matches the warning glow.
+            FX.SpawnElementBurst(pos, Element.Solar, 1.8f);
             SFX.Play3D(SFX.ArcShockClip, pos, 1f, 12f, 0.85f);
 
             float damage = data.projectileDamage;

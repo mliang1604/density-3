@@ -46,8 +46,9 @@ namespace Density3.EditorTools
                 shankBody = MatAsset("ShankBody", new Color(0.38f, 0.33f, 0.27f), 0.55f, 0.5f),
                 shankAccent = MatAsset("ShankAccent", new Color(0.20f, 0.19f, 0.18f), 0.6f, 0.45f),
 
-                // Warning-red glow for the Exploder's eye and thruster wash.
-                exploderEye = MatAsset("ExploderEye", new Color(0.95f, 0.18f, 0.10f), 0f, 0.7f, new Color(1f, 0.22f, 0.12f) * 2.5f),
+                // Warning-orange glow for the Exploder's eye and thruster wash —
+                // explosive orange, unmistakable next to the arc-blue Shank.
+                exploderEye = MatAsset("ExploderEye", new Color(1f, 0.45f, 0.08f), 0f, 0.7f, new Color(1f, 0.5f, 0.12f) * 2.8f),
 
                 // Deep arc-blue cloak — the Captain wears its shield's element.
                 captainCloth = MatAsset("CaptainCloth", new Color(0.10f, 0.22f, 0.38f), 0f, 0.3f),
