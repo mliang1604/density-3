@@ -14,15 +14,48 @@ namespace Density3.EditorTools
     {
         // ----- Wave assets --------------------------------------------------------
 
+        private static WaveData.SpawnEntry Entry(GameObject prefab, int count, string point,
+            float stagger = 0.7f)
+            => new WaveData.SpawnEntry { enemyPrefab = prefab, count = count, spawnPoint = point, stagger = stagger };
+
+        /// <summary>The boss-gate reinforcement waves — baked before the Siriks
+        /// prefab, which references them from its BossGate.</summary>
+        private static WaveData[] BuildGateWaves(Roster roster)
+        {
+            EnsureFolder("Assets/Encounters");
+
+            var g1 = CreateWave("Gate1_Reinforcements", w =>
+            {
+                w.displayName = "Reinforcements";
+                w.startDelay = 1.5f;
+                w.entries = new[]
+                {
+                    Entry(roster.dreg, 3, "Spawn_VaultL", 0.8f),
+                    Entry(roster.shank, 3, "Spawn_WalkW", 0.6f),
+                    Entry(roster.exploder, 2, "Spawn_FloorE", 1.2f)
+                };
+            });
+            var g2 = CreateWave("Gate2_LastStand", w =>
+            {
+                w.displayName = "Last Stand";
+                w.startDelay = 1.5f;
+                w.entries = new[]
+                {
+                    Entry(roster.vandal, 1, "Spawn_WalkNE"),
+                    Entry(roster.vandal, 1, "Spawn_WalkNW"),
+                    Entry(roster.exploder, 3, "Spawn_FloorW", 1.2f),
+                    Entry(roster.dreg, 2, "Spawn_VaultR", 0.8f)
+                };
+            });
+            return new[] { g1, g2 };
+        }
+
         /// <summary>The demo encounter, authored against the vault room's named
         /// spawn points: scouts pour in from the vault flanks, skirmishers take
         /// the walkways, then the onslaught brings the Captain.</summary>
         private static WaveData[] BuildWaves(Roster roster)
         {
             EnsureFolder("Assets/Encounters");
-
-            WaveData.SpawnEntry Entry(GameObject prefab, int count, string point, float stagger = 0.7f)
-                => new WaveData.SpawnEntry { enemyPrefab = prefab, count = count, spawnPoint = point, stagger = stagger };
 
             var w1 = CreateWave("Wave1_Scouts", w =>
             {

@@ -68,7 +68,7 @@ namespace Density3.EditorTools
                 exploder = BuildExploderShankPrefab(mats, enemies.exploder),
                 captain = BuildCaptainPrefab(mats, enemies.captain)
             };
-            roster.siriks = BuildSiriksPrefab(mats, enemies.siriks);
+            roster.siriks = BuildSiriksPrefab(mats, enemies.siriks, BuildGateWaves(roster));
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, roster, hudPrefab);
             BuildZeroHourScene(mats, playerPrefab, hudPrefab, roster);

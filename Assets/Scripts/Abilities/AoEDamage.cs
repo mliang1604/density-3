@@ -39,6 +39,14 @@ namespace Density3.Abilities
                 if (source != null && health.gameObject == source) continue;
 
                 Vector3 at = overlaps[i].ClosestPoint(center);
+
+                // Boss-gate immunity: honest feedback instead of a lying number.
+                var immunity = health.GetComponent<ImmunityShield>();
+                if (immunity != null && immunity.Immune)
+                {
+                    if (showNumbers) DamageNumbers.SpawnImmune(at);
+                    continue;
+                }
                 health.ApplyDamage(new DamageInfo
                 {
                     amount = damage,

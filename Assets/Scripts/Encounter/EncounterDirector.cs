@@ -25,10 +25,12 @@ namespace Density3.Encounter
         public float spawnHeight = 2f;
 
         private readonly HashSet<Health> alive = new HashSet<Health>();
+        private readonly HashSet<Health> sideAlive = new HashSet<Health>();
         private readonly Dictionary<Health, System.Action> deathHandlers
             = new Dictionary<Health, System.Action>();
         private Health playerHealth;
         private bool halted;
+        private int sidePending;
 
         private void Start()
         {
@@ -78,15 +80,42 @@ namespace Density3.Encounter
             GameEvents.AnnounceEncounterComplete();
         }
 
-        private IEnumerator SpawnEntry(WaveData.SpawnEntry entry, System.Action done)
+        private IEnumerator SpawnEntry(WaveData.SpawnEntry entry, System.Action done, bool side = false)
         {
             var point = ResolvePoint(entry.spawnPoint);
             for (int n = 0; n < entry.count; n++)
             {
-                if (entry.enemyPrefab != null) Spawn(entry.enemyPrefab, point);
+                if (entry.enemyPrefab != null) Spawn(entry.enemyPrefab, point, side);
                 if (n < entry.count - 1) yield return new WaitForSeconds(entry.stagger);
             }
             done();
+        }
+
+        // ----- Side waves: boss-gate reinforcements outside the main sequence -----
+
+        /// <summary>True while a side wave has spawns incoming or alive —
+        /// boss gates hold immunity until this clears.</summary>
+        public bool SideWaveActive => sidePending > 0 || sideAlive.Count > 0;
+
+        /// <summary>Runs one wave outside the main sequence. Side spawns also
+        /// join the main alive set, so the encounter can't complete while
+        /// gate reinforcements still breathe.</summary>
+        public void SpawnSideWave(WaveData wave)
+        {
+            if (wave == null || halted) return;
+            StartCoroutine(RunSideWave(wave));
+        }
+
+        private IEnumerator RunSideWave(WaveData wave)
+        {
+            sidePending++;
+            yield return new WaitForSeconds(wave.startDelay);
+            int pending = wave.entries != null ? wave.entries.Length : 0;
+            if (wave.entries != null)
+                foreach (var entry in wave.entries)
+                    StartCoroutine(SpawnEntry(entry, () => pending--, side: true));
+            while (pending > 0) yield return null;
+            sidePending--;
         }
 
         private Transform ResolvePoint(string pointName)
@@ -105,7 +134,7 @@ namespace Density3.Encounter
             return point;
         }
 
-        private void Spawn(GameObject prefab, Transform point)
+        private void Spawn(GameObject prefab, Transform point, bool side = false)
         {
             Vector3 pos = point.position + Vector3.up * spawnHeight;
             var go = Instantiate(prefab, pos, point.rotation);
@@ -121,6 +150,7 @@ namespace Density3.Encounter
             if (health != null)
             {
                 alive.Add(health);
+                if (side) sideAlive.Add(health);
                 System.Action handler = () => OnSpawnDied(health);
                 deathHandlers[health] = handler;
                 health.Died += handler;
@@ -134,6 +164,7 @@ namespace Density3.Encounter
         private void OnSpawnDied(Health health)
         {
             alive.Remove(health);
+            sideAlive.Remove(health);
             if (deathHandlers.TryGetValue(health, out var handler))
             {
                 health.Died -= handler;

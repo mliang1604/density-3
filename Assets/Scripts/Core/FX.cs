@@ -361,8 +361,12 @@ namespace Density3.Core
         /// <summary>Element-tinted ability burst (grenade detonations, melee and
         /// super payoffs). scale grows the cloud and flash for bigger hits.</summary>
         public static void SpawnElementBurst(Vector3 pos, Element element, float scale = 1f)
+            => SpawnColorBurst(pos, ElementPalette.Base(element), scale);
+
+        /// <summary>Custom-colored burst for identities outside the element
+        /// palette (Siriks' stolen-Light pale gold).</summary>
+        public static void SpawnColorBurst(Vector3 pos, Color c, float scale = 1f)
         {
-            Color c = ElementPalette.Base(element);
             SpawnBurst(pos, c, Color.Lerp(c, Color.white, 0.35f), new[]
             {
                 new GradientColorKey(Color.Lerp(c, Color.white, 0.65f), 0f),

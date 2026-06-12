@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Density3.Core;
+using Density3.Encounter;
 using Density3.Enemies;
 using Density3.Player;
 using Density3.UI;
@@ -655,14 +656,17 @@ namespace Density3.EditorTools
 
         /// <summary>Siriks, Light Turned: the Captain construction at 1.8x in
         /// full regalia, every glow swapped for pale stolen-Light emission —
-        /// eyes, plume, weapon coils all burn the wrong color for a Fallen.</summary>
-        private static GameObject BuildSiriksPrefab(Mats mats, EnemyData data)
+        /// eyes, plume, weapon coils all burn the wrong color for a Fallen.
+        /// The BossGate carries the 66%/33% immunity gates and their baked
+        /// reinforcement waves.</summary>
+        private static GameObject BuildSiriksPrefab(Mats mats, EnemyData data, WaveData[] gateWaves)
         {
+            const float bossScale = 1.8f;
             return BuildEliksniPrefab(mats, new EliksniSpec
             {
                 path = "Assets/Prefabs/SiriksEnemy.prefab",
                 name = "SiriksEnemy",
-                scale = 1.8f,
+                scale = bossScale,
                 brain = typeof(SiriksEnemy),
                 data = data,
                 regalia = true,
@@ -676,6 +680,17 @@ namespace Density3.EditorTools
                     brain.meleeDamage = 45f;
                     brain.meleeInterval = 2f;
                     brain.volleyBolts = 5;
+
+                    var immunity = go.AddComponent<ImmunityShield>();
+                    immunity.shellCenter = new Vector3(0f, 0f, 0.05f) * bossScale;
+                    immunity.shellScale = new Vector3(1.4f, 2.6f, 1.4f) * bossScale;
+
+                    var gate = go.AddComponent<BossGate>();
+                    gate.gates = new[]
+                    {
+                        new BossGate.Gate { healthFraction = 0.66f, addWave = gateWaves[0] },
+                        new BossGate.Gate { healthFraction = 0.33f, addWave = gateWaves[1] }
+                    };
                 }
             });
         }
