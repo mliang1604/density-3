@@ -10,28 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff289192ca4f2d119653b310e1e07d91, type: 3}
-  m_Name: Wave3_Onslaught
+  m_Name: Gate2_LastStand
   m_EditorClassIdentifier: 
-  displayName: Onslaught
-  startDelay: 4
+  displayName: Last Stand
+  startDelay: 1.5
   entries:
-  - enemyPrefab: {fileID: 716045182868971446, guid: 26a3bfa65d9569940bb1bfd5e5a7288b, type: 3}
+  - enemyPrefab: {fileID: 7116337584311422593, guid: da6a8ad5d2779c442837f6d2a89e85b3, type: 3}
     count: 1
-    spawnPoint: Spawn_VaultR
-    stagger: 0.7
-  - enemyPrefab: {fileID: 2997796957137925981, guid: d55eee647450dc341abc5e9235067b5b, type: 3}
-    count: 2
-    spawnPoint: Spawn_FloorE
-    stagger: 1.4
-  - enemyPrefab: {fileID: 2997796957137925981, guid: d55eee647450dc341abc5e9235067b5b, type: 3}
-    count: 2
-    spawnPoint: Spawn_FloorW
-    stagger: 1.4
-  - enemyPrefab: {fileID: 8149132937060570140, guid: b92d83bfdcd9ab54f9d98203a81ced46, type: 3}
-    count: 2
-    spawnPoint: Spawn_VaultL
+    spawnPoint: Spawn_WalkNE
     stagger: 0.7
   - enemyPrefab: {fileID: 7116337584311422593, guid: da6a8ad5d2779c442837f6d2a89e85b3, type: 3}
     count: 1
-    spawnPoint: Spawn_WalkW
+    spawnPoint: Spawn_WalkNW
     stagger: 0.7
+  - enemyPrefab: {fileID: 2997796957137925981, guid: d55eee647450dc341abc5e9235067b5b, type: 3}
+    count: 3
+    spawnPoint: Spawn_FloorW
+    stagger: 1.2
+  - enemyPrefab: {fileID: 8149132937060570140, guid: b92d83bfdcd9ab54f9d98203a81ced46, type: 3}
+    count: 2
+    spawnPoint: Spawn_VaultR
+    stagger: 0.8

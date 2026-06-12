@@ -12,6 +12,13 @@ namespace Density3.UI
             => Spawn(pos, amount, crit, crit ? new Color(1f, 0.85f, 0.25f) : Color.white);
 
         public static void Spawn(Vector3 pos, float amount, bool crit, Color color)
+            => SpawnText(pos, Mathf.RoundToInt(amount).ToString(), color, crit ? 0.05f : 0.035f);
+
+        /// <summary>The boss-gate readout: hits during immunity say so.</summary>
+        public static void SpawnImmune(Vector3 pos)
+            => SpawnText(pos, "IMMUNE", new Color(0.78f, 0.78f, 0.85f), 0.026f);
+
+        public static void SpawnText(Vector3 pos, string text, Color color, float charSize)
         {
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -19,10 +26,10 @@ namespace Density3.UI
             go.transform.position = pos + Random.insideUnitSphere * 0.15f;
 
             var tm = go.AddComponent<TextMesh>();
-            tm.text = Mathf.RoundToInt(amount).ToString();
+            tm.text = text;
             tm.font = font;
             tm.fontSize = 64;
-            tm.characterSize = crit ? 0.05f : 0.035f;
+            tm.characterSize = charSize;
             tm.anchor = TextAnchor.MiddleCenter;
             tm.alignment = TextAlignment.Center;
             tm.color = color;

@@ -20,6 +20,10 @@ namespace Density3.Core
         /// shield — damage numbers tint to the shield's element.</summary>
         public bool LastHitShielded { get; private set; }
 
+        /// <summary>True when the most recent Hit bounced off boss-gate
+        /// immunity — callers show IMMUNE instead of a number.</summary>
+        public bool LastHitImmune { get; private set; }
+
         /// <summary>The owner's shield, when it has one.</summary>
         public EnergyShield Shield
         {
@@ -34,13 +38,40 @@ namespace Density3.Core
             }
         }
 
+        /// <summary>The owner's boss-gate immunity, when it has one.</summary>
+        public ImmunityShield Immunity
+        {
+            get
+            {
+                if (!immunityChecked)
+                {
+                    immunity = owner != null ? owner.GetComponent<ImmunityShield>() : null;
+                    immunityChecked = true;
+                }
+                return immunity;
+            }
+        }
+
         private EnergyShield shield;
         private bool shieldChecked;
+        private ImmunityShield immunity;
+        private bool immunityChecked;
 
         /// <summary>Returns the damage actually applied (0 when the owner is missing or already dead).</summary>
         public float Hit(float baseDamage, float critMultiplier, Vector3 point, GameObject source)
         {
             if (owner == null || owner.IsDead) return 0f;
+
+            // Boss-gate immunity: the hit lands on nothing — no damage event,
+            // no flinch, just the IMMUNE readout via LastHitImmune.
+            bool immuneNow = Immunity != null && Immunity.Immune;
+            LastHitImmune = immuneNow;
+            if (immuneNow)
+            {
+                LastHitWasCrit = false;
+                LastHitShielded = false;
+                return 0f;
+            }
 
             bool shielded = Shield != null && Shield.IsUp;
             bool crit = isCritZone && !shielded; // precision counts on bare health only

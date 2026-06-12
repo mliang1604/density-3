@@ -23,10 +23,10 @@ MonoBehaviour:
     count: 2
     spawnPoint: Spawn_FloorNW
     stagger: 0.7
-  - enemyPrefab: {fileID: 2149741814582022438, guid: 060aac6fd223ff04198ed1ad54aa980b, type: 3}
-    count: 3
-    spawnPoint: Spawn_WalkE
-    stagger: 0.6
+  - enemyPrefab: {fileID: 716045182868971446, guid: 26a3bfa65d9569940bb1bfd5e5a7288b, type: 3}
+    count: 1
+    spawnPoint: Spawn_VaultR
+    stagger: 0.7
   - enemyPrefab: {fileID: 7116337584311422593, guid: da6a8ad5d2779c442837f6d2a89e85b3, type: 3}
     count: 1
     spawnPoint: Spawn_WalkNE
@@ -35,3 +35,7 @@ MonoBehaviour:
     count: 1
     spawnPoint: Spawn_WalkNW
     stagger: 0.7
+  - enemyPrefab: {fileID: 2997796957137925981, guid: d55eee647450dc341abc5e9235067b5b, type: 3}
+    count: 2
+    spawnPoint: Spawn_FloorE
+    stagger: 1.4

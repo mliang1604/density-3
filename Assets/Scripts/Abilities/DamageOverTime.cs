@@ -15,6 +15,7 @@ namespace Density3.Abilities
         private const float TickInterval = 0.25f;
 
         private Health health;
+        private ImmunityShield immunity;
         private float dps;
         private float remaining;
         private float tickTimer;
@@ -44,6 +45,10 @@ namespace Density3.Abilities
             if (tickTimer >= TickInterval)
             {
                 tickTimer -= TickInterval;
+
+                // Boss-gate immunity: burns don't tick (and don't spam numbers).
+                if (immunity == null) immunity = health.GetComponent<ImmunityShield>();
+                if (immunity != null && immunity.Immune) return;
                 float amount = dps * TickInterval;
                 Vector3 at = transform.position + Vector3.up;
                 health.ApplyDamage(new DamageInfo

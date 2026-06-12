@@ -78,7 +78,11 @@ namespace Density3.Abilities
             var targetHealth = hb.owner;
             bool wasAlive = targetHealth != null && !targetHealth.IsDead;
             float applied = hb.Hit(damage, critMultiplier, hit.point, gameObject);
-            if (applied <= 0f) return;
+            if (applied <= 0f)
+            {
+                if (hb.LastHitImmune) DamageNumbers.SpawnImmune(hit.point);
+                return;
+            }
 
             if (hb.LastHitShielded)
                 DamageNumbers.Spawn(hit.point, applied, false, ElementPalette.Base(hb.Shield.element));

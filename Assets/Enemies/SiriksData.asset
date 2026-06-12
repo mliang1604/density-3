@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5b158eab4228975e35d324f444c52e99, type: 3}
-  m_Name: CaptainData
+  m_Name: SiriksData
   m_EditorClassIdentifier: 
-  displayName: Captain
-  maxHealth: 420
-  moveSpeed: 5.2
-  strafeSpeed: 2.5
-  aggroRange: 55
+  displayName: Siriks
+  maxHealth: 2000
+  moveSpeed: 4.6
+  strafeSpeed: 2.2
+  aggroRange: 70
   preferredRange: 7
-  fireRange: 32
-  fireInterval: 3.2
-  projectileDamage: 8
-  projectileSpeed: 20
+  fireRange: 45
+  fireInterval: 4
+  projectileDamage: 7
+  projectileSpeed: 22

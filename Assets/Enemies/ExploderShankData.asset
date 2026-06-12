@@ -20,5 +20,5 @@ MonoBehaviour:
   preferredRange: 0
   fireRange: 0
   fireInterval: 2.2
-  projectileDamage: 80
+  projectileDamage: 48
   projectileSpeed: 0

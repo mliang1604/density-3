@@ -66,6 +66,9 @@ namespace Density3.UI
             GameEvents.EnemyKilled += OnEnemyKilled;
             GameEvents.WaveStarted += OnWaveStarted;
             GameEvents.WaveCleared += OnWaveCleared;
+            GameEvents.BossSpawned += OnBossSpawned;
+            GameEvents.BossGateStarted += OnBossGateStarted;
+            GameEvents.BossPhaseStarted += OnBossPhaseStarted;
 
             if (vignette != null) vignetteBaseColor = vignette.color;
 
@@ -129,6 +132,7 @@ namespace Density3.UI
             UpdateAbilityMeters();
 
             UpdateBanner();
+            UpdateBossBar();
 
             // Averaging over a short window keeps the readout from flickering.
             fpsFrames++;
@@ -160,6 +164,110 @@ namespace Density3.UI
         public void ShowRespawnOverlay(bool show)
         {
             if (respawnText != null) respawnText.gameObject.SetActive(show);
+        }
+
+        // ----- Boss bar (runtime-built; bound when GameEvents.BossSpawned fires,
+        // so it exists in no scene without a boss) -----
+
+        private const float BossBarWidth = 700f;
+
+        private Health bossHealth;
+        private ImmunityShield bossImmunity;
+        private GameObject bossBarRoot;
+        private Text bossNameText;
+        private Image bossFill;
+        private float bossShownFraction;
+
+        private void OnBossSpawned(Health health, string bossName, float[] gateFractions)
+        {
+            bossHealth = health;
+            bossImmunity = health != null ? health.GetComponent<ImmunityShield>() : null;
+            if (bossBarRoot == null) BuildBossBar(gateFractions);
+            bossNameText.text = bossName;
+            bossShownFraction = 1f;
+            bossBarRoot.SetActive(true);
+            ShowBanner(bossName, new Color(1f, 0.95f, 0.75f), 3f);
+        }
+
+        private void OnBossGateStarted()
+            => ShowBanner("SIRIKS  CALLS  FOR  REINFORCEMENTS", new Color(0.8f, 0.8f, 0.88f), 2.6f);
+
+        private void OnBossPhaseStarted(int phase)
+            => ShowBanner(phase >= 3 ? "SIRIKS  UNLEASHES  THE  STOLEN  LIGHT"
+                                     : "SIRIKS  GROWS  DESPERATE",
+                phase >= 3 ? new Color(1f, 0.95f, 0.75f) : new Color(1f, 0.55f, 0.35f), 2.6f);
+
+        /// <summary>Name plate over a wide bar; thin pips mark each gate
+        /// threshold so the next immunity wall is always visible.</summary>
+        private void BuildBossBar(float[] gateFractions)
+        {
+            var canvas = GetComponentInChildren<Canvas>();
+            if (canvas == null) return;
+            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            var bg = MakeImage(canvas.transform, "BossBarBG", new Color(0f, 0f, 0f, 0.6f));
+            var bgRect = bg.rectTransform;
+            bgRect.anchorMin = bgRect.anchorMax = new Vector2(0.5f, 1f);
+            bgRect.pivot = new Vector2(0.5f, 1f);
+            bgRect.anchoredPosition = new Vector2(0f, -122f);
+            bgRect.sizeDelta = new Vector2(BossBarWidth, 16f);
+            bossBarRoot = bg.gameObject;
+
+            bossNameText = MakeText(bgRect, "BossName", 22, TextAnchor.LowerCenter);
+            var nameRect = bossNameText.rectTransform;
+            nameRect.anchorMin = new Vector2(0.5f, 1f);
+            nameRect.anchorMax = new Vector2(0.5f, 1f);
+            nameRect.pivot = new Vector2(0.5f, 0f);
+            nameRect.anchoredPosition = new Vector2(0f, 4f);
+            nameRect.sizeDelta = new Vector2(BossBarWidth, 26f);
+            bossNameText.color = new Color(0.93f, 0.88f, 0.78f);
+
+            bossFill = MakeImage(bgRect, "BossFill", new Color(0.78f, 0.16f, 0.16f, 0.95f));
+            var fillRect = bossFill.rectTransform;
+            fillRect.anchorMin = new Vector2(0f, 0f);
+            fillRect.anchorMax = new Vector2(0f, 1f);
+            fillRect.pivot = new Vector2(0f, 0.5f);
+            fillRect.anchoredPosition = new Vector2(2f, 0f);
+            fillRect.sizeDelta = new Vector2(BossBarWidth - 4f, -4f);
+
+            if (gateFractions != null)
+                foreach (float f in gateFractions)
+                {
+                    var pip = MakeImage(bgRect, "GatePip", new Color(0.95f, 0.95f, 1f, 0.85f));
+                    var pipRect = pip.rectTransform;
+                    pipRect.anchorMin = pipRect.anchorMax = new Vector2(0f, 0.5f);
+                    pipRect.pivot = new Vector2(0.5f, 0.5f);
+                    pipRect.anchoredPosition = new Vector2(2f + (BossBarWidth - 4f) * f, 0f);
+                    pipRect.sizeDelta = new Vector2(3f, 22f);
+                }
+        }
+
+        private void UpdateBossBar()
+        {
+            if (bossBarRoot == null || !bossBarRoot.activeSelf) return;
+            if (bossHealth == null)
+            {
+                bossBarRoot.SetActive(false);
+                return;
+            }
+
+            float target = bossHealth.IsDead ? 0f
+                : Mathf.Clamp01(bossHealth.Current / bossHealth.MaxHealth);
+            bossShownFraction = Mathf.MoveTowards(bossShownFraction, target, 0.6f * Time.deltaTime);
+            bossFill.rectTransform.sizeDelta =
+                new Vector2((BossBarWidth - 4f) * bossShownFraction, -4f);
+
+            // Immune reads as the bar going cold.
+            bool immune = bossImmunity != null && bossImmunity.Immune;
+            bossFill.color = immune
+                ? new Color(0.62f, 0.62f, 0.72f, 0.9f)
+                : new Color(0.78f, 0.16f, 0.16f, 0.95f);
+
+            if (bossHealth.IsDead && bossShownFraction <= 0.001f)
+            {
+                bossBarRoot.SetActive(false);
+                bossHealth = null;
+            }
         }
 
         // ----- Mission timer (runtime-built: only mission scenes ever call this) -----
@@ -302,6 +410,9 @@ namespace Density3.UI
             GameEvents.EnemyKilled -= OnEnemyKilled;
             GameEvents.WaveStarted -= OnWaveStarted;
             GameEvents.WaveCleared -= OnWaveCleared;
+            GameEvents.BossSpawned -= OnBossSpawned;
+            GameEvents.BossGateStarted -= OnBossGateStarted;
+            GameEvents.BossPhaseStarted -= OnBossPhaseStarted;
             if (boundAbilities != null)
                 for (int i = 0; i < boundAbilities.Length; i++)
                     if (boundAbilities[i] != null && readyHandlers[i] != null)

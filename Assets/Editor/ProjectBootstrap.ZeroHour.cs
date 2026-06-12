@@ -14,15 +14,49 @@ namespace Density3.EditorTools
     {
         // ----- Wave assets --------------------------------------------------------
 
-        /// <summary>The demo encounter, authored against the vault room's named
-        /// spawn points: scouts pour in from the vault flanks, skirmishers take
-        /// the walkways, then the onslaught brings the Captain.</summary>
-        private static WaveData[] BuildWaves(Roster roster)
+        private static WaveData.SpawnEntry Entry(GameObject prefab, int count, string point,
+            float stagger = 0.7f)
+            => new WaveData.SpawnEntry { enemyPrefab = prefab, count = count, spawnPoint = point, stagger = stagger };
+
+        /// <summary>The boss-gate reinforcement waves — baked before the Siriks
+        /// prefab, which references them from its BossGate.</summary>
+        private static WaveData[] BuildGateWaves(Roster roster)
         {
             EnsureFolder("Assets/Encounters");
 
-            WaveData.SpawnEntry Entry(GameObject prefab, int count, string point, float stagger = 0.7f)
-                => new WaveData.SpawnEntry { enemyPrefab = prefab, count = count, spawnPoint = point, stagger = stagger };
+            var g1 = CreateWave("Gate1_Reinforcements", w =>
+            {
+                w.displayName = "Reinforcements";
+                w.startDelay = 1.5f;
+                w.entries = new[]
+                {
+                    Entry(roster.dreg, 3, "Spawn_VaultL", 0.8f),
+                    Entry(roster.shank, 3, "Spawn_WalkW", 0.6f),
+                    Entry(roster.exploder, 2, "Spawn_FloorE", 1.2f)
+                };
+            });
+            var g2 = CreateWave("Gate2_LastStand", w =>
+            {
+                w.displayName = "Last Stand";
+                w.startDelay = 1.5f;
+                w.entries = new[]
+                {
+                    Entry(roster.vandal, 1, "Spawn_WalkNE"),
+                    Entry(roster.vandal, 1, "Spawn_WalkNW"),
+                    Entry(roster.exploder, 3, "Spawn_FloorW", 1.2f),
+                    Entry(roster.dreg, 2, "Spawn_VaultR", 0.8f)
+                };
+            });
+            return new[] { g1, g2 };
+        }
+
+        /// <summary>The full Zero Hour mission: scouts from the vault flanks,
+        /// then a heavy skirmish line led by a Captain, then Siriks alone —
+        /// the boss IS the final wave, so the director's completion is the
+        /// mission win, and his gates pour their own reinforcements.</summary>
+        private static WaveData[] BuildWaves(Roster roster)
+        {
+            EnsureFolder("Assets/Encounters");
 
             var w1 = CreateWave("Wave1_Scouts", w =>
             {
@@ -31,7 +65,8 @@ namespace Density3.EditorTools
                 w.entries = new[]
                 {
                     Entry(roster.dreg, 3, "Spawn_VaultL", 0.9f),
-                    Entry(roster.dreg, 3, "Spawn_VaultR", 0.9f)
+                    Entry(roster.dreg, 3, "Spawn_VaultR", 0.9f),
+                    Entry(roster.shank, 3, "Spawn_WalkE", 0.6f)
                 };
             });
             var w2 = CreateWave("Wave2_Skirmishers", w =>
@@ -42,22 +77,19 @@ namespace Density3.EditorTools
                 {
                     Entry(roster.dreg, 2, "Spawn_FloorNE"),
                     Entry(roster.dreg, 2, "Spawn_FloorNW"),
-                    Entry(roster.shank, 3, "Spawn_WalkE", 0.6f),
+                    Entry(roster.captain, 1, "Spawn_VaultR"),
                     Entry(roster.vandal, 1, "Spawn_WalkNE"),
-                    Entry(roster.vandal, 1, "Spawn_WalkNW")
+                    Entry(roster.vandal, 1, "Spawn_WalkNW"),
+                    Entry(roster.exploder, 2, "Spawn_FloorE", 1.4f)
                 };
             });
-            var w3 = CreateWave("Wave3_Onslaught", w =>
+            var w3 = CreateWave("Wave3_Siriks", w =>
             {
-                w.displayName = "Onslaught";
-                w.startDelay = 4f;
+                w.displayName = "Siriks";
+                w.startDelay = 5f; // the room goes quiet before the vault stirs
                 w.entries = new[]
                 {
-                    Entry(roster.captain, 1, "Spawn_VaultR"),
-                    Entry(roster.exploder, 2, "Spawn_FloorE", 1.4f),
-                    Entry(roster.exploder, 2, "Spawn_FloorW", 1.4f),
-                    Entry(roster.dreg, 2, "Spawn_VaultL"),
-                    Entry(roster.vandal, 1, "Spawn_WalkW")
+                    Entry(roster.siriks, 1, "BossAnchor")
                 };
             });
             return new[] { w1, w2, w3 };

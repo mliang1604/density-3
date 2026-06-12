@@ -302,6 +302,10 @@ namespace Density3.Weapons
                             DamageNumbers.Spawn(hit.point, applied, hb.LastHitWasCrit);
                         if (wasAlive && owner.IsDead) TargetKilled?.Invoke(owner, hit.point);
                     }
+                    else if (hb.LastHitImmune)
+                    {
+                        DamageNumbers.SpawnImmune(hit.point);
+                    }
                 }
                 else
                 {
