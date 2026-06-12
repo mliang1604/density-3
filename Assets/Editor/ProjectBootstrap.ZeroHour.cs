@@ -243,6 +243,7 @@ namespace Density3.EditorTools
 
             var gmGO = new GameObject("GameManager");
             var gm = gmGO.AddComponent<GameManager>();
+            gm.freeRespawn = false; // death is the mission's problem here
             gm.player = player.GetComponent<PlayerController>();
             gm.weapon = player.GetComponent<HandCannon>();
             gm.hud = hud.GetComponent<HUDController>();
@@ -259,6 +260,8 @@ namespace Density3.EditorTools
             var director = directorGO.AddComponent<EncounterDirector>();
             director.waves = waves;
             director.spawnRoot = spawns;
+
+            gmGO.AddComponent<MissionController>();
 
             EditorSceneManager.SaveScene(scene, ZeroHourScenePath);
         }

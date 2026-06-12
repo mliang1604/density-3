@@ -16,6 +16,8 @@ namespace Density3.Core
         public static GuardianClass SelectedClass = GuardianClass.Warlock;
 
         public float respawnDelay = 3f;
+        [Tooltip("Off in mission scenes: death belongs to the MissionController, not a free respawn.")]
+        public bool freeRespawn = true;
 
         [Header("Wiring (scene references)")]
         public PlayerController player;
@@ -58,7 +60,10 @@ namespace Density3.Core
             }
         }
 
-        private void OnPlayerDied() => StartCoroutine(RespawnRoutine());
+        private void OnPlayerDied()
+        {
+            if (freeRespawn) StartCoroutine(RespawnRoutine());
+        }
 
         private void OnPlayerDamaged(DamageInfo info) => SFX.Play2D(SFX.PlayerHurtClip, 0.7f);
 

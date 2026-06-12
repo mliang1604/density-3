@@ -162,6 +162,43 @@ namespace Density3.UI
             if (respawnText != null) respawnText.gameObject.SetActive(show);
         }
 
+        // ----- Mission overlay (runtime-built, respawn-overlay pattern) -----
+
+        private GameObject missionOverlay;
+        private Text missionTitle;
+        private Text missionSubtitle;
+
+        /// <summary>Full-screen end-state overlay: dimmed backdrop, a big
+        /// tinted title, and a routing hint. Built lazily so committed HUD
+        /// prefabs need no rebake.</summary>
+        public void ShowMissionOverlay(string title, string subtitle, Color tint)
+        {
+            if (missionOverlay == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas == null) return;
+                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+                var dim = MakeImage(canvas.transform, "MissionOverlay", new Color(0f, 0f, 0f, 0.62f));
+                Stretch(dim.rectTransform);
+                missionOverlay = dim.gameObject;
+
+                missionTitle = MakeText(dim.transform, "MissionTitle", 64, TextAnchor.MiddleCenter);
+                SetCenter(missionTitle.rectTransform, new Vector2(0f, 40f), new Vector2(1200f, 80f));
+
+                missionSubtitle = MakeText(dim.transform, "MissionSubtitle", 24, TextAnchor.MiddleCenter);
+                SetCenter(missionSubtitle.rectTransform, new Vector2(0f, -30f), new Vector2(1200f, 36f));
+                missionSubtitle.color = new Color(0.93f, 0.88f, 0.78f);
+            }
+            missionTitle.text = title;
+            missionTitle.color = tint;
+            missionSubtitle.text = subtitle;
+            missionOverlay.SetActive(true);
+
+            // End states own the screen — the wave banner yields.
+            if (bannerText != null) bannerText.gameObject.SetActive(false);
+        }
+
         // ----- Wave banner (runtime-built: committed HUD prefabs need no rebake) -----
 
         private Text bannerText;
