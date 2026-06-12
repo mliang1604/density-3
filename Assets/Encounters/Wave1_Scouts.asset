@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff289192ca4f2d119653b310e1e07d91, type: 3}
+  m_Name: Wave1_Scouts
+  m_EditorClassIdentifier: 
+  displayName: Scouts
+  startDelay: 3
+  entries:
+  - enemyPrefab: {fileID: 8149132937060570140, guid: b92d83bfdcd9ab54f9d98203a81ced46, type: 3}
+    count: 3
+    spawnPoint: Spawn_VaultL
+    stagger: 0.9
+  - enemyPrefab: {fileID: 8149132937060570140, guid: b92d83bfdcd9ab54f9d98203a81ced46, type: 3}
+    count: 3
+    spawnPoint: Spawn_VaultR
+    stagger: 0.9
