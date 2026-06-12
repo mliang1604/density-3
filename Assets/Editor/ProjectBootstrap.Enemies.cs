@@ -21,6 +21,7 @@ namespace Density3.EditorTools
         {
             public EnemyData dreg;
             public EnemyData vandal;
+            public EnemyData shank;
         }
 
         /// <summary>Bakes one EnemyData asset per archetype into Assets/Enemies —
@@ -32,7 +33,8 @@ namespace Density3.EditorTools
             {
                 // EnemyData's class defaults ARE the classic Dreg tuning.
                 dreg = CreateEnemyData("DregData", d => d.displayName = "Dreg"),
-                vandal = CreateEnemyData("VandalData", VandalEnemy.Configure)
+                vandal = CreateEnemyData("VandalData", VandalEnemy.Configure),
+                shank = CreateEnemyData("ShankData", ShankEnemy.Configure)
             };
         }
 
@@ -430,6 +432,117 @@ namespace Density3.EditorTools
             });
         }
 
+        // ----- Shank drone rig (shared by Shank and Exploder Shank) --------------
+
+        private class ShankSpec
+        {
+            public string path;
+            public string name;
+            public System.Type brain = typeof(ShankEnemy);
+            public EnemyData data;
+            public float hoverHeight = 2.5f;
+            public Material glow;   // eye, thruster wash, gun tips
+            public Material accent; // hatch and trim
+            public bool guns = true;
+        }
+
+        /// <summary>
+        /// Small hovering drone: sphere hull with a protruding front sensor
+        /// eye (the crit zone), flat lift-fan cylinders port and starboard, a
+        /// rear thruster, an antenna, and a pair of chin bolt guns. No
+        /// CharacterController and no rig animator — ShankEnemy flies the
+        /// transform directly.
+        /// </summary>
+        private static GameObject BuildShankPrefab(Mats mats, ShankSpec spec)
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(spec.path);
+            if (existing != null) return existing;
+
+            var rootGO = new GameObject(spec.name) { layer = EnemyLayer };
+            var root = rootGO.transform;
+
+            var health = rootGO.AddComponent<Health>();
+            health.SetMaxHealth(spec.data != null ? spec.data.maxHealth : 85f);
+
+            GameObject Deco(string name, Vector3 pos, Vector3 euler, Vector3 scale,
+                Material mat, PrimitiveType type, Transform parent = null)
+            {
+                var go = GameObject.CreatePrimitive(type);
+                go.name = name;
+                Object.DestroyImmediate(go.GetComponent<Collider>());
+                go.transform.SetParent(parent != null ? parent : root, false);
+                go.transform.localPosition = pos;
+                go.transform.localRotation = Quaternion.Euler(euler);
+                go.transform.localScale = scale;
+                go.GetComponent<Renderer>().sharedMaterial = mat;
+                return go;
+            }
+
+            // Hull keeps its collider: it is the hitscan target.
+            var hull = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            hull.name = "Hull";
+            hull.layer = EnemyLayer;
+            hull.transform.SetParent(root, false);
+            hull.transform.localScale = Vector3.one * 0.6f;
+            hull.GetComponent<Renderer>().sharedMaterial = mats.shankBody;
+            var hullHB = hull.AddComponent<Hitbox>();
+            hullHB.owner = health;
+
+            // Front sensor eye dome — sticks out past the hull, so head-on
+            // shots that land on the lens count as precision hits.
+            var eye = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            eye.name = "Eye";
+            eye.layer = EnemyLayer;
+            eye.transform.SetParent(root, false);
+            eye.transform.localPosition = new Vector3(0f, 0.01f, 0.26f);
+            eye.transform.localScale = Vector3.one * 0.2f;
+            eye.GetComponent<Renderer>().sharedMaterial = spec.glow;
+            var eyeHB = eye.AddComponent<Hitbox>();
+            eyeHB.owner = health;
+            eyeHB.isCritZone = true;
+
+            // Lift fans: flat cylinders port and starboard with glow wash beneath.
+            for (int s = -1; s <= 1; s += 2)
+            {
+                Deco("Fan", new Vector3(0.34f * s, 0.08f, 0f), Vector3.zero, new Vector3(0.16f, 0.045f, 0.16f), mats.shankAccent, PrimitiveType.Cylinder);
+                Deco("FanHub", new Vector3(0.34f * s, 0.13f, 0f), Vector3.zero, Vector3.one * 0.06f, mats.shankBody, PrimitiveType.Sphere);
+                Deco("FanWash", new Vector3(0.34f * s, 0.02f, 0f), Vector3.zero, new Vector3(0.10f, 0.02f, 0.10f), spec.glow, PrimitiveType.Cylinder);
+            }
+
+            // Rear thruster with an exhaust glow.
+            Deco("Thruster", new Vector3(0f, 0.04f, -0.32f), new Vector3(90f, 0f, 0f), new Vector3(0.10f, 0.07f, 0.10f), mats.shankAccent, PrimitiveType.Cylinder);
+            Deco("ThrusterGlow", new Vector3(0f, 0.04f, -0.40f), Vector3.zero, Vector3.one * 0.06f, spec.glow, PrimitiveType.Sphere);
+
+            // Top hatch plate and antenna.
+            Deco("Hatch", new Vector3(0f, 0.27f, -0.02f), Vector3.zero, new Vector3(0.22f, 0.05f, 0.24f), spec.accent, PrimitiveType.Cube);
+            Deco("Antenna", new Vector3(0.10f, 0.40f, -0.08f), new Vector3(0f, 0f, -8f), new Vector3(0.014f, 0.11f, 0.014f), mats.shankAccent, PrimitiveType.Cylinder);
+            Deco("AntennaTip", new Vector3(0.115f, 0.52f, -0.08f), Vector3.zero, Vector3.one * 0.035f, spec.glow, PrimitiveType.Sphere);
+
+            // Chin bolt guns (the Exploder trades them for more speed).
+            if (spec.guns)
+            {
+                for (int s = -1; s <= 1; s += 2)
+                {
+                    Deco("Gun", new Vector3(0.16f * s, -0.14f, 0.16f), Vector3.zero, new Vector3(0.05f, 0.05f, 0.20f), mats.gunBlack, PrimitiveType.Cube);
+                    Deco("GunTip", new Vector3(0.16f * s, -0.14f, 0.27f), Vector3.zero, Vector3.one * 0.04f, spec.glow, PrimitiveType.Sphere);
+                }
+            }
+
+            rootGO.AddComponent<DamageFlash>();
+
+            var brain = (ShankEnemy)rootGO.AddComponent(spec.brain);
+            brain.data = spec.data;
+            brain.hoverHeight = spec.hoverHeight;
+
+            var rs = rootGO.AddComponent<Respawner>();
+            rs.delay = 6f;
+            rs.countsAsKill = true;
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(rootGO, spec.path);
+            Object.DestroyImmediate(rootGO);
+            return prefab;
+        }
+
         // ----- Vandal enemy prefab ------------------------------------------------
 
         /// <summary>Taller Eliksni with a long wire rifle and a Devils-red cloak.</summary>
@@ -445,6 +558,20 @@ namespace Density3.EditorTools
                 data = data,
                 leather = mats.dregLeather, bone = mats.dregBone, cloth = mats.vandalCloth,
                 hair = mats.dregHair, claw = mats.dregClaw, wrap = mats.dregWrap, eye = mats.dregEye
+            });
+        }
+
+        // ----- Shank enemy prefab -------------------------------------------------
+
+        private static GameObject BuildShankPrefab(Mats mats, EnemyData data)
+        {
+            return BuildShankPrefab(mats, new ShankSpec
+            {
+                path = "Assets/Prefabs/ShankEnemy.prefab",
+                name = "ShankEnemy",
+                data = data,
+                glow = mats.dregEye,
+                accent = mats.shankAccent
             });
         }
     }
