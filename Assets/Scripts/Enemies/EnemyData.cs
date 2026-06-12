@@ -28,7 +28,7 @@ namespace Density3.Enemies
 
         [Header("Ranged Attack")]
         public float fireInterval = 2.2f;
-        public float projectileDamage = 14f;
+        public float projectileDamage = 8f;
         public float projectileSpeed = 17f;
     }
 }

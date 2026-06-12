@@ -677,7 +677,7 @@ namespace Density3.EditorTools
                     // Boss-weight melee on the Captain brain's serialized fields.
                     var brain = go.GetComponent<SiriksEnemy>();
                     brain.meleeRange = 3.5f;
-                    brain.meleeDamage = 45f;
+                    brain.meleeDamage = 27f;
                     brain.meleeInterval = 2f;
                     brain.volleyBolts = 5;
 

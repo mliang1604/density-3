@@ -6773,7 +6773,7 @@ MonoBehaviour:
   volleyBolts: 5
   volleySpacing: 0.18
   meleeRange: 3.5
-  meleeDamage: 45
+  meleeDamage: 27
   meleeInterval: 2
   anchorNames:
   - BossAnchor
@@ -6787,7 +6787,7 @@ MonoBehaviour:
   enrageFireScale: 0.55
   enrageVolleyBolts: 7
   enrageMeleeInterval: 1.1
-  enrageMeleeDamage: 55
+  enrageMeleeDamage: 33
 --- !u!114 &290248312312413761
 MonoBehaviour:
   m_ObjectHideFlags: 0

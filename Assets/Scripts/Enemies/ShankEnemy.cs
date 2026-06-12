@@ -67,7 +67,7 @@ namespace Density3.Enemies
             d.preferredRange = 12f;
             d.fireRange = 25f;
             d.fireInterval = 0.5f;
-            d.projectileDamage = 6f;
+            d.projectileDamage = 4f;
             d.projectileSpeed = 22f;
         }
 

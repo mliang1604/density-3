@@ -18,7 +18,7 @@ namespace Density3.Enemies
 
         [Header("Melee")]
         public float meleeRange = 3f;
-        public float meleeDamage = 35f;
+        public float meleeDamage = 21f;
         public float meleeInterval = 1.6f;
 
         private float nextMelee;
@@ -36,7 +36,7 @@ namespace Density3.Enemies
             d.preferredRange = 7f;  // wants to be in your face
             d.fireRange = 32f;
             d.fireInterval = 3.2f;
-            d.projectileDamage = 13f; // per bolt; a full volley is 39
+            d.projectileDamage = 8f; // per bolt; a full volley is 24
             d.projectileSpeed = 20f;
         }
 

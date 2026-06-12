@@ -1107,7 +1107,7 @@ MonoBehaviour:
   volleyBolts: 3
   volleySpacing: 0.18
   meleeRange: 3
-  meleeDamage: 35
+  meleeDamage: 21
   meleeInterval: 1.6
 --- !u!114 &8699072758591722931
 MonoBehaviour:

@@ -20,6 +20,8 @@ namespace Density3.Enemies
         [Tooltip("Distance to the player's chest that trips the contact fuse.")]
         public float detonateRange = 2f;
         public float blastRadius = 4.5f;
+        [Tooltip("Blast damage to OTHER Fallen — full strength, so popping one inside a pack stays lethal. The player takes data.projectileDamage.")]
+        public float enemyBlastDamage = 80f;
 
         [Header("Warning Glow")]
         public Color glowColor = new Color(1f, 0.5f, 0.1f);
@@ -47,7 +49,7 @@ namespace Density3.Enemies
             d.preferredRange = 0f;  // no orbit band: always closing
             d.fireRange = 0f;       // never shoots — it IS the shot
             d.fireInterval = 2.2f;
-            d.projectileDamage = 80f; // blast damage (player and enemies alike)
+            d.projectileDamage = 48f; // blast damage to the player; enemyBlastDamage covers the Fallen
             d.projectileSpeed = 0f;
         }
 
@@ -140,7 +142,6 @@ namespace Density3.Enemies
             FX.SpawnElementBurst(pos, Element.Solar, 1.8f);
             SFX.Play3D(SFX.ArcShockClip, pos, 1f, 12f, 0.85f);
 
-            float damage = data.projectileDamage;
             int n = Physics.OverlapSphereNonAlloc(pos, blastRadius, blastOverlaps, ~0,
                 QueryTriggerInteraction.Ignore);
             blastSeen.Clear();
@@ -150,6 +151,9 @@ namespace Density3.Enemies
                 if (h == null || h == health || h.IsDead || !blastSeen.Add(h)) continue;
                 if (h == playerHealth && !hurtPlayer) continue;
 
+                // The player takes the tuned hit; other Fallen take the full
+                // payload, so a shot-down exploder still guts its pack.
+                float damage = h == playerHealth ? data.projectileDamage : enemyBlastDamage;
                 Vector3 at = blastOverlaps[i].ClosestPoint(pos);
                 h.ApplyDamage(new DamageInfo
                 {

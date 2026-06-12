@@ -37,7 +37,7 @@ namespace Density3.Enemies
         public float enrageFireScale = 0.55f;
         public int enrageVolleyBolts = 7;
         public float enrageMeleeInterval = 1.1f;
-        public float enrageMeleeDamage = 55f;
+        public float enrageMeleeDamage = 33f;
 
         private Transform[] anchors = new Transform[0];
         private int anchorIndex;
@@ -58,7 +58,7 @@ namespace Density3.Enemies
             d.preferredRange = 7f;
             d.fireRange = 45f;
             d.fireInterval = 4f;
-            d.projectileDamage = 11f; // per bolt; volleys are the threat
+            d.projectileDamage = 7f; // per bolt; volleys are the threat
             d.projectileSpeed = 22f;
         }
 
