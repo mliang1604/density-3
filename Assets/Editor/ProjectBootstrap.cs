@@ -30,10 +30,10 @@ namespace Density3.EditorTools
         private const string ZeroHourScenePath = "Assets/Scenes/ZeroHour.unity";
         private const int EnemyLayer = 6; // named "Enemy" in TagManager
 
-        /// <summary>The five baked enemy prefabs, as one handful.</summary>
+        /// <summary>The baked enemy prefabs, as one handful.</summary>
         private class Roster
         {
-            public GameObject dreg, vandal, shank, exploder, captain;
+            public GameObject dreg, vandal, shank, exploder, captain, siriks;
         }
 
         private class Mats
@@ -41,6 +41,7 @@ namespace Density3.EditorTools
             public Material ground, wall, cover, dummy, crit;
             public Material dregLeather, dregBone, dregCloth, dregHair, dregClaw, dregWrap, dregEye;
             public Material vandalCloth, shankBody, shankAccent, exploderEye, captainCloth;
+            public Material siriksCloth, siriksGlow;
             public Material vaultMetal, vaultGlow;
             public Material gunMetal, gunAccent, gunBlack, gunIvory, gunSteel, gunWood, gunSight;
         }
@@ -67,6 +68,7 @@ namespace Density3.EditorTools
                 exploder = BuildExploderShankPrefab(mats, enemies.exploder),
                 captain = BuildCaptainPrefab(mats, enemies.captain)
             };
+            roster.siriks = BuildSiriksPrefab(mats, enemies.siriks);
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, roster, hudPrefab);
             BuildZeroHourScene(mats, playerPrefab, hudPrefab, roster);

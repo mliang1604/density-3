@@ -53,6 +53,11 @@ namespace Density3.EditorTools
                 // Deep arc-blue cloak — the Captain wears its shield's element.
                 captainCloth = MatAsset("CaptainCloth", new Color(0.10f, 0.22f, 0.38f), 0f, 0.3f),
 
+                // Siriks wears stolen Light: tarnished gold-grey cloth and a
+                // pale emission that is the wrong color for any Fallen.
+                siriksCloth = MatAsset("SiriksCloth", new Color(0.30f, 0.27f, 0.18f), 0.1f, 0.35f),
+                siriksGlow = MatAsset("SiriksGlow", new Color(1f, 0.95f, 0.78f), 0f, 0.7f, new Color(1f, 0.93f, 0.7f) * 2.6f),
+
                 // Zero Hour vault dressing: gunmetal plate and an arc-glow trim.
                 vaultMetal = MatAsset("VaultMetal", new Color(0.13f, 0.14f, 0.17f), 0.75f, 0.55f),
                 vaultGlow = MatAsset("VaultGlow", new Color(0.25f, 0.6f, 1f), 0f, 0.6f, new Color(0.3f, 0.65f, 1f) * 2.2f),
