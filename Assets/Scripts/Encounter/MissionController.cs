@@ -17,12 +17,20 @@ namespace Density3.Encounter
     {
         public string titleSceneName = "Title";
 
+        [Header("Countdown")]
+        [Tooltip("Off for untimed testing — the HUD readout never appears.")]
+        public bool timerEnabled = true;
+        [Tooltip("Mission clock in seconds; expiry is a fail.")]
+        public float missionSeconds = 600f;
+
         private enum State { Playing, Failed, Won }
 
         private State state = State.Playing;
         private Health playerHealth;
         private PlayerController player;
         private HUDController hud;
+        private float remaining;
+        private int lastTickSecond = -1;
 
         private void Start()
         {
@@ -32,6 +40,8 @@ namespace Density3.Encounter
 
             if (playerHealth != null) playerHealth.Died += OnPlayerDied;
             GameEvents.EncounterComplete += OnEncounterComplete;
+
+            remaining = missionSeconds;
         }
 
         private void OnDestroy()
@@ -42,7 +52,11 @@ namespace Density3.Encounter
 
         private void Update()
         {
-            if (state == State.Playing) return;
+            if (state == State.Playing)
+            {
+                TickTimer();
+                return;
+            }
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
                 if (state == State.Failed)
@@ -50,6 +64,28 @@ namespace Density3.Encounter
                 else
                     SceneManager.LoadScene(titleSceneName);
             }
+        }
+
+        /// <summary>The Zero Hour clock: counts down on the HUD, goes red and
+        /// audibly ticks through the final minute, fails the mission at zero.</summary>
+        private void TickTimer()
+        {
+            if (!timerEnabled) return;
+            remaining -= Time.deltaTime;
+            bool urgent = remaining <= 60f;
+            if (hud != null) hud.SetMissionTimer(Mathf.Max(0f, remaining), urgent);
+
+            if (urgent && remaining > 0f)
+            {
+                int second = Mathf.CeilToInt(remaining);
+                if (second != lastTickSecond)
+                {
+                    lastTickSecond = second;
+                    // The last ten seconds tick higher and harder.
+                    SFX.Play2D(SFX.TimerTickClip, second <= 10 ? 0.6f : 0.4f, second <= 10 ? 1.35f : 1f);
+                }
+            }
+            if (remaining <= 0f) Fail("ZERO HOUR EXPIRED");
         }
 
         private void OnPlayerDied() => Fail("GUARDIAN DOWN");

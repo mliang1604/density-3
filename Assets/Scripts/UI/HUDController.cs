@@ -162,6 +162,34 @@ namespace Density3.UI
             if (respawnText != null) respawnText.gameObject.SetActive(show);
         }
 
+        // ----- Mission timer (runtime-built: only mission scenes ever call this) -----
+
+        private Text timerText;
+        private int timerShownSecond = int.MinValue;
+
+        /// <summary>Top-center countdown, red through the final minute. Text
+        /// only rebuilds on second boundaries — no per-frame allocations.</summary>
+        public void SetMissionTimer(float seconds, bool urgent)
+        {
+            if (timerText == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas == null) return;
+                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                timerText = MakeText(canvas.transform, "MissionTimer", 38, TextAnchor.UpperCenter);
+                Anchor(timerText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(240f, 46f));
+            }
+            int total = Mathf.CeilToInt(seconds);
+            if (total != timerShownSecond)
+            {
+                timerShownSecond = total;
+                timerText.text = (total / 60) + ":" + (total % 60).ToString("00");
+            }
+            timerText.color = urgent
+                ? new Color(1f, 0.32f, 0.28f)
+                : new Color(0.92f, 0.96f, 1f, 0.95f);
+        }
+
         // ----- Mission overlay (runtime-built, respawn-overlay pattern) -----
 
         private GameObject missionOverlay;
