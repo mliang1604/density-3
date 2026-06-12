@@ -296,7 +296,10 @@ namespace Density3.Weapons
                     float applied = hb.Hit(dmg, data.critMultiplier, hit.point, gameObject);
                     if (applied > 0f)
                     {
-                        DamageNumbers.Spawn(hit.point, applied, hb.isCritZone);
+                        if (hb.LastHitShielded)
+                            DamageNumbers.Spawn(hit.point, applied, false, ElementPalette.Base(hb.Shield.element));
+                        else
+                            DamageNumbers.Spawn(hit.point, applied, hb.LastHitWasCrit);
                         if (wasAlive && owner.IsDead) TargetKilled?.Invoke(owner, hit.point);
                     }
                 }

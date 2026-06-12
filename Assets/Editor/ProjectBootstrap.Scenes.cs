@@ -113,7 +113,7 @@ namespace Density3.EditorTools
         // ----- Scene -------------------------------------------------------------
 
         private static void BuildScene(Mats mats, GameObject playerPrefab,
-            GameObject dregPrefab, GameObject hudPrefab)
+            Roster roster, GameObject hudPrefab)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
@@ -150,10 +150,12 @@ namespace Density3.EditorTools
             };
             foreach (var p in posts)
             {
-                var dreg = (GameObject)PrefabUtility.InstantiatePrefab(dregPrefab);
+                var dreg = (GameObject)PrefabUtility.InstantiatePrefab(roster.dreg);
                 dreg.transform.SetParent(enemies, false);
                 dreg.transform.position = p + Vector3.up * 1.05f;
             }
+
+            BuildGallery(enemies, roster);
 
             var hud = (GameObject)PrefabUtility.InstantiatePrefab(hudPrefab);
 
@@ -199,6 +201,31 @@ namespace Density3.EditorTools
             go.transform.SetParent(parent, false);
             go.transform.position = pos;
             return go;
+        }
+
+        /// <summary>The M5 roster gallery: one labeled slot per enemy type in a
+        /// row by the north wall, far enough that nothing aggroes the spawn.
+        /// Spawn heights put each CharacterController bottom just above the
+        /// ground (1.05 x rig scale); drones spawn at their hover height.
+        /// Shanks come as a trio — their TTK is judged as a cluster.</summary>
+        private static void BuildGallery(Transform parent, Roster roster)
+        {
+            const float z = 50f;
+
+            void Slot(GameObject prefab, float x, float y, string label)
+            {
+                var go = PlaceDummy(prefab, parent, new Vector3(x, y, z));
+                go.transform.rotation = Quaternion.Euler(0f, 180f, 0f); // face the range
+                CreateWorldLabel(parent, new Vector3(x, 3.6f, z), label);
+            }
+
+            Slot(roster.dreg, -20f, 1.05f, "DREG");
+            Slot(roster.vandal, -10f, 1.21f, "VANDAL");
+            Slot(roster.shank, 0f, 2.5f, "SHANK x3");
+            PlaceDummy(roster.shank, parent, new Vector3(-2.5f, 2.5f, z + 2.5f));
+            PlaceDummy(roster.shank, parent, new Vector3(2.5f, 2.5f, z + 2.5f));
+            Slot(roster.exploder, 10f, 1.2f, "EXPLODER");
+            Slot(roster.captain, 20f, 1.55f, "CAPTAIN");
         }
 
         private static void BuildArena(Mats mats)

@@ -31,6 +31,8 @@ namespace Density3.Core
         private static AudioClip abilityMelee;
         private static AudioClip superActivate;
         private static AudioClip jetLoop;
+        private static AudioClip sniperCharge;
+        private static AudioClip beep;
 
         public static AudioClip DryFireClip { get { EnsureClips(); return dryFire; } }
         public static AudioClip ReloadStartClip { get { EnsureClips(); return reloadStart; } }
@@ -49,6 +51,8 @@ namespace Density3.Core
         public static AudioClip AbilityMeleeClip { get { EnsureClips(); return abilityMelee; } }
         public static AudioClip SuperActivateClip { get { EnsureClips(); return superActivate; } }
         public static AudioClip JetpackLoopClip { get { EnsureClips(); return jetLoop; } }
+        public static AudioClip SniperChargeClip { get { EnsureClips(); return sniperCharge; } }
+        public static AudioClip BeepClip { get { EnsureClips(); return beep; } }
 
         public static AudioClip GunshotFor(float rpm)
         {
@@ -169,8 +173,10 @@ namespace Density3.Core
 
         /// <summary>Positioned one-shot. minDistance sets how far the sound carries
         /// at full volume — big values (5-10) for sounds that must read clearly
-        /// at combat range, 1 for quiet local effects.</summary>
-        public static void Play3D(AudioClip clip, Vector3 pos, float volume = 1f, float minDistance = 1f)
+        /// at combat range, 1 for quiet local effects. pitch repurposes one clip
+        /// across a family of sounds (exploder beep ramps, weapon variants).</summary>
+        public static void Play3D(AudioClip clip, Vector3 pos, float volume = 1f, float minDistance = 1f,
+            float pitch = 1f)
         {
             if (clip == null) return;
             var go = new GameObject("SFX3D");
@@ -178,11 +184,12 @@ namespace Density3.Core
             var src = go.AddComponent<AudioSource>();
             src.clip = clip;
             src.volume = volume;
+            src.pitch = pitch;
             src.spatialBlend = 1f;
             src.minDistance = minDistance;
             src.rolloffMode = AudioRolloffMode.Logarithmic;
             src.Play();
-            Object.Destroy(go, clip.length + 0.1f);
+            Object.Destroy(go, clip.length / Mathf.Max(0.1f, pitch) + 0.1f);
         }
 
         private static AudioSource NextSource()
@@ -228,6 +235,33 @@ namespace Density3.Core
             abilityMelee = BuildWhoosh("sfx_ability_melee", 0.16f, 0.95f);
             superActivate = BuildSwell("sfx_super_activate", 1.2f, 0.9f);
             jetLoop = BuildJetThrust("sfx_jet_loop", 1.6f, 0.8f);
+            sniperCharge = BuildSniperCharge("sfx_sniper_charge", 1.2f, 0.45f);
+            // The Exploder's warning chirp — played with a rising pitch ramp.
+            beep = BuildDing("sfx_beep", 1180f, 1770f, 0.1f, 0.035f, 0.55f);
+        }
+
+        /// <summary>Thin rising whine for the Vandal's wire-rifle telegraph —
+        /// the pitch climbs with the windup so the lock moment is audible
+        /// without watching the beam. Length matches the default telegraph.</summary>
+        private static AudioClip BuildSniperCharge(string name, float duration, float gain)
+        {
+            int n = (int)(SampleRate * duration);
+            var data = new float[n];
+            float phase = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / SampleRate;
+                float t01 = (float)i / n;
+                float f = Mathf.Lerp(620f, 1860f, t01 * t01);
+                phase += 2f * Mathf.PI * f / SampleRate;
+                float tremolo = 1f + 0.25f * Mathf.Sin(2f * Mathf.PI * 16f * t);
+                float ramp = Mathf.Lerp(0.35f, 1f, t01);
+                data[i] = (Mathf.Sin(phase) * 0.6f + Mathf.Sin(phase * 2f) * 0.2f) * tremolo * ramp * gain;
+            }
+            // Edge fade so the clip ends without a click.
+            int fade = (int)(0.02f * SampleRate);
+            for (int i = 0; i < fade; i++) data[n - 1 - i] *= (float)i / fade;
+            return MakeClip(name, data);
         }
 
         /// <summary>Constant filtered-noise thrust bed for the Titan jetpack —

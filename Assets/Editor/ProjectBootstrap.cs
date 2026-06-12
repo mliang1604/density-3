@@ -29,10 +29,17 @@ namespace Density3.EditorTools
         private const string TitleScenePath = "Assets/Scenes/Title.unity";
         private const int EnemyLayer = 6; // named "Enemy" in TagManager
 
+        /// <summary>The five baked enemy prefabs, as one handful.</summary>
+        private class Roster
+        {
+            public GameObject dreg, vandal, shank, exploder, captain;
+        }
+
         private class Mats
         {
             public Material ground, wall, cover, dummy, crit;
             public Material dregLeather, dregBone, dregCloth, dregHair, dregClaw, dregWrap, dregEye;
+            public Material vandalCloth, shankBody, shankAccent, exploderEye, captainCloth;
             public Material gunMetal, gunAccent, gunBlack, gunIvory, gunSteel, gunWood, gunSight;
         }
 
@@ -46,12 +53,20 @@ namespace Density3.EditorTools
 
             var mats = BuildMaterials();
             var weapons = BuildWeapons();
+            var enemies = BuildEnemyData();
             BuildClasses();
             var playerPrefab = BuildPlayerPrefab(mats, weapons);
             BuildDummyPrefab(mats); // asset kept for DPS testing and the M5 gallery
-            var dregPrefab = BuildDregPrefab(mats);
+            var roster = new Roster
+            {
+                dreg = BuildDregPrefab(mats, enemies.dreg),
+                vandal = BuildVandalPrefab(mats, enemies.vandal),
+                shank = BuildShankPrefab(mats, enemies.shank),
+                exploder = BuildExploderShankPrefab(mats, enemies.exploder),
+                captain = BuildCaptainPrefab(mats, enemies.captain)
+            };
             var hudPrefab = BuildHudPrefab();
-            BuildScene(mats, playerPrefab, dregPrefab, hudPrefab);
+            BuildScene(mats, playerPrefab, roster, hudPrefab);
             BuildTitleScene();
 
             // Title first: it is the startup scene in builds.

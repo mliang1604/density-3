@@ -80,12 +80,15 @@ namespace Density3.Abilities
             float applied = hb.Hit(damage, critMultiplier, hit.point, gameObject);
             if (applied <= 0f) return;
 
-            DamageNumbers.Spawn(hit.point, applied, hb.isCritZone);
-            FX.SpawnElementBurst(hit.point, Element.Solar, hb.isCritZone ? 0.7f : 0.45f);
+            if (hb.LastHitShielded)
+                DamageNumbers.Spawn(hit.point, applied, false, ElementPalette.Base(hb.Shield.element));
+            else
+                DamageNumbers.Spawn(hit.point, applied, hb.LastHitWasCrit);
+            FX.SpawnElementBurst(hit.point, Element.Solar, hb.LastHitWasCrit ? 0.7f : 0.45f);
             SFX.Play3D(SFX.MeleeImpactClip, hit.point, 0.7f, 6f);
 
             // Knife Juggler: only the precision kill brings the knife back.
-            if (wasAlive && targetHealth.IsDead && hb.isCritZone) AddEnergy(1f);
+            if (wasAlive && targetHealth.IsDead && hb.LastHitWasCrit) AddEnergy(1f);
         }
     }
 }
