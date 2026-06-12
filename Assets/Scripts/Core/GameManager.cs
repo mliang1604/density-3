@@ -7,6 +7,13 @@ using Density3.Weapons;
 
 namespace Density3.Core
 {
+    /// <summary>Where the title screen routes on play.</summary>
+    public enum Destination
+    {
+        ZeroHour,
+        TestRange
+    }
+
     /// <summary>Handles player death/respawn and global audio prewarm. Scene
     /// references are serialized; anything missing is found at Start.</summary>
     public class GameManager : MonoBehaviour
@@ -15,7 +22,13 @@ namespace Density3.Core
         /// Warlock when a gameplay scene is launched directly in the editor.</summary>
         public static GuardianClass SelectedClass = GuardianClass.Warlock;
 
+        /// <summary>Destination picked on the title screen; the mission is
+        /// the showcase, so it is the default.</summary>
+        public static Destination SelectedDestination = Destination.ZeroHour;
+
         public float respawnDelay = 3f;
+        [Tooltip("Off in mission scenes: death belongs to the MissionController, not a free respawn.")]
+        public bool freeRespawn = true;
 
         [Header("Wiring (scene references)")]
         public PlayerController player;
@@ -58,7 +71,10 @@ namespace Density3.Core
             }
         }
 
-        private void OnPlayerDied() => StartCoroutine(RespawnRoutine());
+        private void OnPlayerDied()
+        {
+            if (freeRespawn) StartCoroutine(RespawnRoutine());
+        }
 
         private void OnPlayerDamaged(DamageInfo info) => SFX.Play2D(SFX.PlayerHurtClip, 0.7f);
 

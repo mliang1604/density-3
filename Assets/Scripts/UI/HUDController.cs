@@ -64,6 +64,8 @@ namespace Density3.UI
             }
             if (playerHealth != null) playerHealth.Damaged += OnPlayerDamaged;
             GameEvents.EnemyKilled += OnEnemyKilled;
+            GameEvents.WaveStarted += OnWaveStarted;
+            GameEvents.WaveCleared += OnWaveCleared;
 
             if (vignette != null) vignetteBaseColor = vignette.color;
 
@@ -126,6 +128,8 @@ namespace Density3.UI
             if (!abilitiesBound) TryBindAbilities();
             UpdateAbilityMeters();
 
+            UpdateBanner();
+
             // Averaging over a short window keeps the readout from flickering.
             fpsFrames++;
             fpsTimer += Time.unscaledDeltaTime;
@@ -156,6 +160,113 @@ namespace Density3.UI
         public void ShowRespawnOverlay(bool show)
         {
             if (respawnText != null) respawnText.gameObject.SetActive(show);
+        }
+
+        // ----- Mission timer (runtime-built: only mission scenes ever call this) -----
+
+        private Text timerText;
+        private int timerShownSecond = int.MinValue;
+
+        /// <summary>Top-center countdown, red through the final minute. Text
+        /// only rebuilds on second boundaries — no per-frame allocations.</summary>
+        public void SetMissionTimer(float seconds, bool urgent)
+        {
+            if (timerText == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas == null) return;
+                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                timerText = MakeText(canvas.transform, "MissionTimer", 38, TextAnchor.UpperCenter);
+                Anchor(timerText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(240f, 46f));
+            }
+            int total = Mathf.CeilToInt(seconds);
+            if (total != timerShownSecond)
+            {
+                timerShownSecond = total;
+                timerText.text = (total / 60) + ":" + (total % 60).ToString("00");
+            }
+            timerText.color = urgent
+                ? new Color(1f, 0.32f, 0.28f)
+                : new Color(0.92f, 0.96f, 1f, 0.95f);
+        }
+
+        // ----- Mission overlay (runtime-built, respawn-overlay pattern) -----
+
+        private GameObject missionOverlay;
+        private Text missionTitle;
+        private Text missionSubtitle;
+
+        /// <summary>Full-screen end-state overlay: dimmed backdrop, a big
+        /// tinted title, and a routing hint. Built lazily so committed HUD
+        /// prefabs need no rebake.</summary>
+        public void ShowMissionOverlay(string title, string subtitle, Color tint)
+        {
+            if (missionOverlay == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas == null) return;
+                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+                var dim = MakeImage(canvas.transform, "MissionOverlay", new Color(0f, 0f, 0f, 0.62f));
+                Stretch(dim.rectTransform);
+                missionOverlay = dim.gameObject;
+
+                missionTitle = MakeText(dim.transform, "MissionTitle", 64, TextAnchor.MiddleCenter);
+                SetCenter(missionTitle.rectTransform, new Vector2(0f, 40f), new Vector2(1200f, 80f));
+
+                missionSubtitle = MakeText(dim.transform, "MissionSubtitle", 24, TextAnchor.MiddleCenter);
+                SetCenter(missionSubtitle.rectTransform, new Vector2(0f, -30f), new Vector2(1200f, 36f));
+                missionSubtitle.color = new Color(0.93f, 0.88f, 0.78f);
+            }
+            missionTitle.text = title;
+            missionTitle.color = tint;
+            missionSubtitle.text = subtitle;
+            missionOverlay.SetActive(true);
+
+            // End states own the screen — the wave banner yields.
+            if (bannerText != null) bannerText.gameObject.SetActive(false);
+        }
+
+        // ----- Wave banner (runtime-built: committed HUD prefabs need no rebake) -----
+
+        private Text bannerText;
+        private float bannerUntil;
+
+        private void OnWaveStarted(int number, int total)
+            => ShowBanner("WAVE  " + number + "  /  " + total, new Color(0.92f, 0.96f, 1f, 0.95f));
+
+        private void OnWaveCleared(int number)
+            => ShowBanner("WAVE  CLEARED", new Color(1f, 0.85f, 0.4f, 0.95f));
+
+        /// <summary>Large center-screen announcement that holds, then fades.</summary>
+        public void ShowBanner(string message, Color color, float seconds = 2.2f)
+        {
+            if (bannerText == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas == null) return;
+                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                bannerText = MakeText(canvas.transform, "Banner", 40, TextAnchor.MiddleCenter);
+                SetCenter(bannerText.rectTransform, new Vector2(0f, 160f), new Vector2(900f, 52f));
+            }
+            bannerText.text = message;
+            bannerText.color = color;
+            bannerUntil = Time.time + seconds;
+            bannerText.gameObject.SetActive(true);
+        }
+
+        private void UpdateBanner()
+        {
+            if (bannerText == null || !bannerText.gameObject.activeSelf) return;
+            float left = bannerUntil - Time.time;
+            if (left <= 0f)
+            {
+                bannerText.gameObject.SetActive(false);
+                return;
+            }
+            var c = bannerText.color;
+            c.a = Mathf.Clamp01(left / 0.5f); // hold, then a half-second fade
+            bannerText.color = c;
         }
 
         /// <summary>One-off colored vignette pulse (super casts and the like).
@@ -189,6 +300,8 @@ namespace Density3.UI
         {
             if (playerHealth != null) playerHealth.Damaged -= OnPlayerDamaged;
             GameEvents.EnemyKilled -= OnEnemyKilled;
+            GameEvents.WaveStarted -= OnWaveStarted;
+            GameEvents.WaveCleared -= OnWaveCleared;
             if (boundAbilities != null)
                 for (int i = 0; i < boundAbilities.Length; i++)
                     if (boundAbilities[i] != null && readyHandlers[i] != null)

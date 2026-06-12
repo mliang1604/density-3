@@ -12,6 +12,8 @@ namespace Density3.Core
     {
         public float delay = 4f;
         public bool countsAsKill;
+        [Tooltip("Off for mission spawns: the body despawns instead of reviving.")]
+        public bool respawn = true;
 
         /// <summary>Seconds the (still-visible) body lingers after death so a
         /// death animation can play before it's hidden. 0 = hide immediately.</summary>
@@ -40,6 +42,11 @@ namespace Density3.Core
         {
             if (deathAnimSeconds > 0f) yield return new WaitForSeconds(deathAnimSeconds);
             SetVisible(false);
+            if (!respawn)
+            {
+                Destroy(gameObject); // mission dead stay dead
+                yield break;
+            }
             yield return new WaitForSeconds(Mathf.Max(0f, delay - deathAnimSeconds));
             CharacterTeleport.To(transform, startPos, startRot);
             health.Revive();

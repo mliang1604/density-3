@@ -27,6 +27,7 @@ namespace Density3.EditorTools
     {
         private const string ScenePath = "Assets/Scenes/TestRange.unity";
         private const string TitleScenePath = "Assets/Scenes/Title.unity";
+        private const string ZeroHourScenePath = "Assets/Scenes/ZeroHour.unity";
         private const int EnemyLayer = 6; // named "Enemy" in TagManager
 
         /// <summary>The five baked enemy prefabs, as one handful.</summary>
@@ -40,6 +41,7 @@ namespace Density3.EditorTools
             public Material ground, wall, cover, dummy, crit;
             public Material dregLeather, dregBone, dregCloth, dregHair, dregClaw, dregWrap, dregEye;
             public Material vandalCloth, shankBody, shankAccent, exploderEye, captainCloth;
+            public Material vaultMetal, vaultGlow;
             public Material gunMetal, gunAccent, gunBlack, gunIvory, gunSteel, gunWood, gunSight;
         }
 
@@ -67,13 +69,15 @@ namespace Density3.EditorTools
             };
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, roster, hudPrefab);
+            BuildZeroHourScene(mats, playerPrefab, hudPrefab, roster);
             BuildTitleScene();
 
             // Title first: it is the startup scene in builds.
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene(TitleScenePath, true),
-                new EditorBuildSettingsScene(ScenePath, true)
+                new EditorBuildSettingsScene(ScenePath, true),
+                new EditorBuildSettingsScene(ZeroHourScenePath, true)
             };
 
             AssetDatabase.SaveAssets();
@@ -106,7 +110,8 @@ namespace Density3.EditorTools
             PlayerSettings.runInBackground = true;
 
             var report = BuildPipeline.BuildPlayer(
-                new[] { TitleScenePath, ScenePath }, "Builds/WebGL", BuildTarget.WebGL, BuildOptions.None);
+                new[] { TitleScenePath, ScenePath, ZeroHourScenePath }, "Builds/WebGL",
+                BuildTarget.WebGL, BuildOptions.None);
 
             if (report.summary.result == BuildResult.Succeeded)
             {

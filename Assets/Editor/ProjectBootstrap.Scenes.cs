@@ -99,10 +99,19 @@ namespace Density3.EditorTools
             csRect.anchoredPosition = new Vector2(0f, 200f);
             csRect.sizeDelta = new Vector2(1100f, 30f);
 
+            // Filled by TitleScreen.RefreshDestinationText at runtime.
+            var destinationSelect = MakeTitleText("DestinationSelect", "", 22, cream);
+            var dsRect = destinationSelect.rectTransform;
+            dsRect.anchorMin = dsRect.anchorMax = new Vector2(0.5f, 0f);
+            dsRect.anchoredPosition = new Vector2(0f, 250f);
+            dsRect.sizeDelta = new Vector2(1100f, 30f);
+
             var title = canvasGO.AddComponent<TitleScreen>();
             title.gameSceneName = "TestRange";
+            title.zeroHourSceneName = "ZeroHour";
             title.pressToPlay = press;
             title.classSelect = classSelect;
+            title.destinationSelect = destinationSelect;
 
             var quit = canvasGO.AddComponent<QuitHandler>();
             quit.requireHold = false; // tap to quit on the title screen
