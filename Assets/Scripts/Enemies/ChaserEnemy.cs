@@ -24,6 +24,10 @@ namespace Density3.Enemies
         protected Transform player;
         protected Health playerHealth;
 
+        /// <summary>Multiplier on the data asset's fire interval — phase
+        /// machines speed up at runtime without touching the shared asset.</summary>
+        protected float fireIntervalScale = 1f;
+
         private float nextFire;
         private float strafeDir = 1f;
         private float nextStrafeFlip;
@@ -78,7 +82,7 @@ namespace Density3.Enemies
 
             if (Time.time >= nextFire && ReadyToFire(dist))
             {
-                nextFire = Time.time + data.fireInterval * Random.Range(0.8f, 1.3f);
+                nextFire = Time.time + data.fireInterval * fireIntervalScale * Random.Range(0.8f, 1.3f);
                 Fire();
             }
         }
