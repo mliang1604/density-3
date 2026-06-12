@@ -69,7 +69,7 @@ namespace Density3.EditorTools
             };
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, roster, hudPrefab);
-            BuildZeroHourScene(mats, playerPrefab, hudPrefab);
+            BuildZeroHourScene(mats, playerPrefab, hudPrefab, roster);
             BuildTitleScene();
 
             // Title first: it is the startup scene in builds.

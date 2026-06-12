@@ -14,6 +14,8 @@ namespace Density3.Core
         public float respawnDelay = 6f;
         public float corpseSeconds = 4f;
         public float knockback = 5f;
+        [Tooltip("Off for mission spawns: the corpse despawns instead of cycling back.")]
+        public bool respawn = true;
 
         [Header("Ragdoll (prefab references)")]
         public Rigidbody[] bodies;
@@ -127,6 +129,11 @@ namespace Density3.Core
         {
             yield return new WaitForSeconds(corpseSeconds);
             SetRenderers(false);
+            if (!respawn)
+            {
+                Destroy(gameObject); // mission dead stay dead
+                yield break;
+            }
             yield return new WaitForSeconds(Mathf.Max(0f, respawnDelay - corpseSeconds));
             ResetAndRespawn();
         }

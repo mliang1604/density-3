@@ -64,6 +64,8 @@ namespace Density3.UI
             }
             if (playerHealth != null) playerHealth.Damaged += OnPlayerDamaged;
             GameEvents.EnemyKilled += OnEnemyKilled;
+            GameEvents.WaveStarted += OnWaveStarted;
+            GameEvents.WaveCleared += OnWaveCleared;
 
             if (vignette != null) vignetteBaseColor = vignette.color;
 
@@ -126,6 +128,8 @@ namespace Density3.UI
             if (!abilitiesBound) TryBindAbilities();
             UpdateAbilityMeters();
 
+            UpdateBanner();
+
             // Averaging over a short window keeps the readout from flickering.
             fpsFrames++;
             fpsTimer += Time.unscaledDeltaTime;
@@ -156,6 +160,48 @@ namespace Density3.UI
         public void ShowRespawnOverlay(bool show)
         {
             if (respawnText != null) respawnText.gameObject.SetActive(show);
+        }
+
+        // ----- Wave banner (runtime-built: committed HUD prefabs need no rebake) -----
+
+        private Text bannerText;
+        private float bannerUntil;
+
+        private void OnWaveStarted(int number, int total)
+            => ShowBanner("WAVE  " + number + "  /  " + total, new Color(0.92f, 0.96f, 1f, 0.95f));
+
+        private void OnWaveCleared(int number)
+            => ShowBanner("WAVE  CLEARED", new Color(1f, 0.85f, 0.4f, 0.95f));
+
+        /// <summary>Large center-screen announcement that holds, then fades.</summary>
+        public void ShowBanner(string message, Color color, float seconds = 2.2f)
+        {
+            if (bannerText == null)
+            {
+                var canvas = GetComponentInChildren<Canvas>();
+                if (canvas == null) return;
+                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                bannerText = MakeText(canvas.transform, "Banner", 40, TextAnchor.MiddleCenter);
+                SetCenter(bannerText.rectTransform, new Vector2(0f, 160f), new Vector2(900f, 52f));
+            }
+            bannerText.text = message;
+            bannerText.color = color;
+            bannerUntil = Time.time + seconds;
+            bannerText.gameObject.SetActive(true);
+        }
+
+        private void UpdateBanner()
+        {
+            if (bannerText == null || !bannerText.gameObject.activeSelf) return;
+            float left = bannerUntil - Time.time;
+            if (left <= 0f)
+            {
+                bannerText.gameObject.SetActive(false);
+                return;
+            }
+            var c = bannerText.color;
+            c.a = Mathf.Clamp01(left / 0.5f); // hold, then a half-second fade
+            bannerText.color = c;
         }
 
         /// <summary>One-off colored vignette pulse (super casts and the like).
@@ -189,6 +235,8 @@ namespace Density3.UI
         {
             if (playerHealth != null) playerHealth.Damaged -= OnPlayerDamaged;
             GameEvents.EnemyKilled -= OnEnemyKilled;
+            GameEvents.WaveStarted -= OnWaveStarted;
+            GameEvents.WaveCleared -= OnWaveCleared;
             if (boundAbilities != null)
                 for (int i = 0; i < boundAbilities.Length; i++)
                     if (boundAbilities[i] != null && readyHandlers[i] != null)

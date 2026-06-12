@@ -3,6 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Density3.Core;
+using Density3.Encounter;
 using Density3.Player;
 using Density3.UI;
 using Density3.Weapons;
@@ -11,6 +12,69 @@ namespace Density3.EditorTools
 {
     public static partial class ProjectBootstrap
     {
+        // ----- Wave assets --------------------------------------------------------
+
+        /// <summary>The demo encounter, authored against the vault room's named
+        /// spawn points: scouts pour in from the vault flanks, skirmishers take
+        /// the walkways, then the onslaught brings the Captain.</summary>
+        private static WaveData[] BuildWaves(Roster roster)
+        {
+            EnsureFolder("Assets/Encounters");
+
+            WaveData.SpawnEntry Entry(GameObject prefab, int count, string point, float stagger = 0.7f)
+                => new WaveData.SpawnEntry { enemyPrefab = prefab, count = count, spawnPoint = point, stagger = stagger };
+
+            var w1 = CreateWave("Wave1_Scouts", w =>
+            {
+                w.displayName = "Scouts";
+                w.startDelay = 3f;
+                w.entries = new[]
+                {
+                    Entry(roster.dreg, 3, "Spawn_VaultL", 0.9f),
+                    Entry(roster.dreg, 3, "Spawn_VaultR", 0.9f)
+                };
+            });
+            var w2 = CreateWave("Wave2_Skirmishers", w =>
+            {
+                w.displayName = "Skirmishers";
+                w.startDelay = 4f;
+                w.entries = new[]
+                {
+                    Entry(roster.dreg, 2, "Spawn_FloorNE"),
+                    Entry(roster.dreg, 2, "Spawn_FloorNW"),
+                    Entry(roster.shank, 3, "Spawn_WalkE", 0.6f),
+                    Entry(roster.vandal, 1, "Spawn_WalkNE"),
+                    Entry(roster.vandal, 1, "Spawn_WalkNW")
+                };
+            });
+            var w3 = CreateWave("Wave3_Onslaught", w =>
+            {
+                w.displayName = "Onslaught";
+                w.startDelay = 4f;
+                w.entries = new[]
+                {
+                    Entry(roster.captain, 1, "Spawn_VaultR"),
+                    Entry(roster.exploder, 2, "Spawn_FloorE", 1.4f),
+                    Entry(roster.exploder, 2, "Spawn_FloorW", 1.4f),
+                    Entry(roster.dreg, 2, "Spawn_VaultL"),
+                    Entry(roster.vandal, 1, "Spawn_WalkW")
+                };
+            });
+            return new[] { w1, w2, w3 };
+        }
+
+        private static WaveData CreateWave(string assetName, System.Action<WaveData> configure)
+        {
+            string path = "Assets/Encounters/" + assetName + ".asset";
+            var existing = AssetDatabase.LoadAssetAtPath<WaveData>(path);
+            if (existing != null) return existing; // preserve user edits
+
+            var w = ScriptableObject.CreateInstance<WaveData>();
+            configure(w);
+            AssetDatabase.CreateAsset(w, path);
+            return w;
+        }
+
         // ----- Zero Hour: the Siriks vault room ---------------------------------
 
         /// <summary>
@@ -21,8 +85,10 @@ namespace Density3.EditorTools
         /// transforms (10 add spawns, a boss anchor, the player start) are the
         /// contract the encounter waves are authored against.
         /// </summary>
-        private static void BuildZeroHourScene(Mats mats, GameObject playerPrefab, GameObject hudPrefab)
+        private static void BuildZeroHourScene(Mats mats, GameObject playerPrefab, GameObject hudPrefab,
+            Roster roster)
         {
+            var waves = BuildWaves(roster);
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             // ----- Moody-vault lighting: built-in render settings only -----
@@ -188,6 +254,11 @@ namespace Density3.EditorTools
             quit.requireHold = true;
 
             AddMusic(gmGO, "Assets/Audio/BattleTheme.mp3", 0.3f);
+
+            var directorGO = new GameObject("EncounterDirector");
+            var director = directorGO.AddComponent<EncounterDirector>();
+            director.waves = waves;
+            director.spawnRoot = spawns;
 
             EditorSceneManager.SaveScene(scene, ZeroHourScenePath);
         }
