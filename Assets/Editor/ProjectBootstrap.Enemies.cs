@@ -15,6 +15,37 @@ namespace Density3.EditorTools
 {
     public static partial class ProjectBootstrap
     {
+        // ----- Enemy data assets ------------------------------------------------
+
+        private class EnemyAssets
+        {
+            public EnemyData dreg;
+        }
+
+        /// <summary>Bakes one EnemyData asset per archetype into Assets/Enemies —
+        /// the roster's whole balance table, editable without touching prefabs.</summary>
+        private static EnemyAssets BuildEnemyData()
+        {
+            EnsureFolder("Assets/Enemies");
+            return new EnemyAssets
+            {
+                // EnemyData's class defaults ARE the classic Dreg tuning.
+                dreg = CreateEnemyData("DregData", d => d.displayName = "Dreg")
+            };
+        }
+
+        private static EnemyData CreateEnemyData(string assetName, System.Action<EnemyData> configure)
+        {
+            string path = "Assets/Enemies/" + assetName + ".asset";
+            var existing = AssetDatabase.LoadAssetAtPath<EnemyData>(path);
+            if (existing != null) return existing; // preserve user edits
+
+            var d = ScriptableObject.CreateInstance<EnemyData>();
+            configure(d);
+            AssetDatabase.CreateAsset(d, path);
+            return d;
+        }
+
         // ----- Target dummy prefab ---------------------------------------------
 
         private static GameObject BuildDummyPrefab(Mats mats)
@@ -66,7 +97,7 @@ namespace Density3.EditorTools
         /// leathery body, FOUR full clawed arms, spiked bone pauldron, white
         /// bracers/knee guards, wrapped digitigrade shins, and clawed feet.
         /// </summary>
-        private static GameObject BuildDregPrefab(Mats mats)
+        private static GameObject BuildDregPrefab(Mats mats, EnemyData data)
         {
             const string path = "Assets/Prefabs/DregEnemy.prefab";
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -76,7 +107,7 @@ namespace Density3.EditorTools
             var root = rootGO.transform;
 
             var health = rootGO.AddComponent<Health>();
-            health.SetMaxHealth(150f);
+            health.SetMaxHealth(data != null ? data.maxHealth : 150f);
 
             var cc = rootGO.AddComponent<CharacterController>();
             cc.height = 2f;
@@ -331,7 +362,7 @@ namespace Density3.EditorTools
             death.headRenderers = headRenderers.ToArray();
             death.headBone = head;
 
-            rootGO.AddComponent<ChaserEnemy>();
+            rootGO.AddComponent<ChaserEnemy>().data = data;
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(rootGO, path);
             Object.DestroyImmediate(rootGO);

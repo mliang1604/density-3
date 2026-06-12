@@ -46,10 +46,11 @@ namespace Density3.EditorTools
 
             var mats = BuildMaterials();
             var weapons = BuildWeapons();
+            var enemies = BuildEnemyData();
             BuildClasses();
             var playerPrefab = BuildPlayerPrefab(mats, weapons);
             BuildDummyPrefab(mats); // asset kept for DPS testing and the M5 gallery
-            var dregPrefab = BuildDregPrefab(mats);
+            var dregPrefab = BuildDregPrefab(mats, enemies.dreg);
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, dregPrefab, hudPrefab);
             BuildTitleScene();
