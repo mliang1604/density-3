@@ -30,7 +30,7 @@ namespace Density3.Enemies
         public static void Configure(EnemyData d)
         {
             d.displayName = "Vandal";
-            d.maxHealth = 220f;
+            d.maxHealth = 215f; // exactly three 140-frame crits (3 x 72)
             d.moveSpeed = 3.8f;
             d.strafeSpeed = 2.2f;
             d.aggroRange = 60f;
