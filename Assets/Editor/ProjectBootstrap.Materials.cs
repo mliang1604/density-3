@@ -38,6 +38,10 @@ namespace Density3.EditorTools
                 dregWrap = MatAsset("DregWrap", new Color(0.33f, 0.27f, 0.20f), 0f, 0.25f),
                 dregEye = MatAsset("DregEye", new Color(0.1f, 0.7f, 0.9f), 0f, 0.7f, new Color(0.2f, 0.8f, 1f) * 2.5f),
 
+                // House of Devils red — the Vandal's cloak sets it apart from
+                // the purple-wrapped Dreg at a glance.
+                vandalCloth = MatAsset("VandalCloth", new Color(0.44f, 0.13f, 0.10f), 0f, 0.25f),
+
                 gunMetal = MatAsset("GunMetal", new Color(0.18f, 0.18f, 0.2f), 0.6f, 0.65f),
                 gunAccent = MatAsset("GunAccent", new Color(0.8f, 0.65f, 0.3f), 0.8f, 0.7f),
                 gunBlack = MatAsset("GunBlack", new Color(0.055f, 0.055f, 0.065f), 0.55f, 0.55f),
