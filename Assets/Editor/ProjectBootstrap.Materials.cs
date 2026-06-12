@@ -49,6 +49,9 @@ namespace Density3.EditorTools
                 // Warning-red glow for the Exploder's eye and thruster wash.
                 exploderEye = MatAsset("ExploderEye", new Color(0.95f, 0.18f, 0.10f), 0f, 0.7f, new Color(1f, 0.22f, 0.12f) * 2.5f),
 
+                // Deep arc-blue cloak — the Captain wears its shield's element.
+                captainCloth = MatAsset("CaptainCloth", new Color(0.10f, 0.22f, 0.38f), 0f, 0.3f),
+
                 gunMetal = MatAsset("GunMetal", new Color(0.18f, 0.18f, 0.2f), 0.6f, 0.65f),
                 gunAccent = MatAsset("GunAccent", new Color(0.8f, 0.65f, 0.3f), 0.8f, 0.7f),
                 gunBlack = MatAsset("GunBlack", new Color(0.055f, 0.055f, 0.065f), 0.55f, 0.55f),

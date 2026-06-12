@@ -2,12 +2,16 @@ using UnityEngine;
 
 namespace Density3.UI
 {
-    /// <summary>Destiny-style floating damage numbers (white body, yellow crit).</summary>
+    /// <summary>Destiny-style floating damage numbers (white body, yellow crit,
+    /// element-tinted while the damage lands on an energy shield).</summary>
     public static class DamageNumbers
     {
         private static Font font;
 
         public static void Spawn(Vector3 pos, float amount, bool crit)
+            => Spawn(pos, amount, crit, crit ? new Color(1f, 0.85f, 0.25f) : Color.white);
+
+        public static void Spawn(Vector3 pos, float amount, bool crit, Color color)
         {
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -21,7 +25,7 @@ namespace Density3.UI
             tm.characterSize = crit ? 0.05f : 0.035f;
             tm.anchor = TextAnchor.MiddleCenter;
             tm.alignment = TextAlignment.Center;
-            tm.color = crit ? new Color(1f, 0.85f, 0.25f) : Color.white;
+            tm.color = color;
             go.GetComponent<MeshRenderer>().material = font.material;
 
             go.AddComponent<FloatingNumber>();

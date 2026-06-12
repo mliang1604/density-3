@@ -23,6 +23,7 @@ namespace Density3.EditorTools
             public EnemyData vandal;
             public EnemyData shank;
             public EnemyData exploder;
+            public EnemyData captain;
         }
 
         /// <summary>Bakes one EnemyData asset per archetype into Assets/Enemies —
@@ -36,7 +37,8 @@ namespace Density3.EditorTools
                 dreg = CreateEnemyData("DregData", d => d.displayName = "Dreg"),
                 vandal = CreateEnemyData("VandalData", VandalEnemy.Configure),
                 shank = CreateEnemyData("ShankData", ShankEnemy.Configure),
-                exploder = CreateEnemyData("ExploderShankData", ExploderShankEnemy.Configure)
+                exploder = CreateEnemyData("ExploderShankData", ExploderShankEnemy.Configure),
+                captain = CreateEnemyData("CaptainData", CaptainEnemy.Configure)
             };
         }
 
@@ -112,6 +114,8 @@ namespace Density3.EditorTools
             public System.Type brain = typeof(ChaserEnemy);
             public EnemyData data;
             public Material leather, bone, cloth, hair, claw, wrap, eye;
+            public bool regalia;   // Captain extras: twin pauldrons, chest plate, horns
+            public float arcShield; // > 0 adds an EnergyShield with this pool
         }
 
         /// <summary>
@@ -235,12 +239,26 @@ namespace Density3.EditorTools
             headRenderers.AddRange(eyes);
 
             // ----- Upper arms: spiked bone pauldron (L), leather shoulder (R),
-            // white bracers, clawed hands -----
+            // white bracers, clawed hands. Regalia upgrades the right shoulder
+            // to a matching spiked pauldron and adds a chest plate and horns. -----
             Part(shL, "Pauldron", new Vector3(0.26f, 0.52f, 0.08f), new Vector3(10f, 0f, 14f), new Vector3(0.17f, 0.12f, 0.18f), spec.bone, PrimitiveType.Sphere);
             Part(shL, "Spike1", new Vector3(0.22f, 0.60f, 0.06f), new Vector3(0f, 0f, 25f), new Vector3(0.025f, 0.09f, 0.025f), spec.bone, PrimitiveType.Cube);
             Part(shL, "Spike2", new Vector3(0.27f, 0.61f, 0.10f), new Vector3(0f, 0f, 5f), new Vector3(0.025f, 0.10f, 0.025f), spec.bone, PrimitiveType.Cube);
             Part(shL, "Spike3", new Vector3(0.31f, 0.59f, 0.04f), new Vector3(0f, 0f, -18f), new Vector3(0.025f, 0.08f, 0.025f), spec.bone, PrimitiveType.Cube);
-            Part(shR, "Shoulder", new Vector3(-0.26f, 0.51f, 0.08f), new Vector3(10f, 0f, -14f), new Vector3(0.14f, 0.10f, 0.15f), spec.leather, PrimitiveType.Sphere);
+            if (spec.regalia)
+            {
+                Part(shR, "Pauldron", new Vector3(-0.26f, 0.52f, 0.08f), new Vector3(10f, 0f, -14f), new Vector3(0.17f, 0.12f, 0.18f), spec.bone, PrimitiveType.Sphere);
+                Part(shR, "Spike1", new Vector3(-0.22f, 0.60f, 0.06f), new Vector3(0f, 0f, -25f), new Vector3(0.025f, 0.09f, 0.025f), spec.bone, PrimitiveType.Cube);
+                Part(shR, "Spike2", new Vector3(-0.27f, 0.61f, 0.10f), new Vector3(0f, 0f, -5f), new Vector3(0.025f, 0.10f, 0.025f), spec.bone, PrimitiveType.Cube);
+                Part(shR, "Spike3", new Vector3(-0.31f, 0.59f, 0.04f), new Vector3(0f, 0f, 18f), new Vector3(0.025f, 0.08f, 0.025f), spec.bone, PrimitiveType.Cube);
+                Part(chest, "ChestPlate", new Vector3(0f, 0.42f, 0.22f), new Vector3(10f, 0f, 0f), new Vector3(0.30f, 0.24f, 0.05f), spec.bone, PrimitiveType.Cube);
+                headRenderers.Add(Part(head, "Horn.L", new Vector3(0.13f, 0.88f, 0.20f), new Vector3(-20f, 0f, 32f), new Vector3(0.035f, 0.24f, 0.06f), spec.bone, PrimitiveType.Cube).GetComponent<Renderer>());
+                headRenderers.Add(Part(head, "Horn.R", new Vector3(-0.13f, 0.88f, 0.20f), new Vector3(-20f, 0f, -32f), new Vector3(0.035f, 0.24f, 0.06f), spec.bone, PrimitiveType.Cube).GetComponent<Renderer>());
+            }
+            else
+            {
+                Part(shR, "Shoulder", new Vector3(-0.26f, 0.51f, 0.08f), new Vector3(10f, 0f, -14f), new Vector3(0.14f, 0.10f, 0.15f), spec.leather, PrimitiveType.Sphere);
+            }
 
             Part(uaL, "UpperArmMesh", new Vector3(0.28f, 0.32f, 0.14f), new Vector3(28f, 0f, 14f), new Vector3(0.075f, 0.20f, 0.075f), spec.leather, PrimitiveType.Cube);
             Part(uaR, "UpperArmMesh", new Vector3(-0.28f, 0.32f, 0.14f), new Vector3(28f, 0f, -14f), new Vector3(0.075f, 0.20f, 0.075f), spec.leather, PrimitiveType.Cube);
@@ -414,6 +432,15 @@ namespace Density3.EditorTools
             var brain = (ChaserEnemy)rootGO.AddComponent(spec.brain);
             brain.data = spec.data;
             if (brain is VandalEnemy vandal) vandal.muzzle = muzzleTip;
+
+            if (spec.arcShield > 0f)
+            {
+                var shield = rootGO.AddComponent<EnergyShield>();
+                shield.maxShield = spec.arcShield;
+                shield.element = Element.Arc;
+                shield.shellCenter = new Vector3(0f, 0f, 0.05f) * s;
+                shield.shellScale = new Vector3(1.4f, 2.6f, 1.4f) * s;
+            }
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(rootGO, spec.path);
             Object.DestroyImmediate(rootGO);
@@ -595,6 +622,27 @@ namespace Density3.EditorTools
                 accent = mats.shankAccent,
                 guns = false,
                 countsAsKill = false // the brain announces shot-down kills itself
+            });
+        }
+
+        // ----- Captain enemy prefab -----------------------------------------------
+
+        /// <summary>Hulking 1.45x Eliksni in full bone regalia behind an arc
+        /// shield. The Siriks boss reuses this spec at a bigger scale with
+        /// corrupted materials.</summary>
+        private static GameObject BuildCaptainPrefab(Mats mats, EnemyData data)
+        {
+            return BuildEliksniPrefab(mats, new EliksniSpec
+            {
+                path = "Assets/Prefabs/CaptainEnemy.prefab",
+                name = "CaptainEnemy",
+                scale = 1.45f,
+                brain = typeof(CaptainEnemy),
+                data = data,
+                regalia = true,
+                arcShield = 200f,
+                leather = mats.dregLeather, bone = mats.dregBone, cloth = mats.captainCloth,
+                hair = mats.dregHair, claw = mats.dregClaw, wrap = mats.dregWrap, eye = mats.dregEye
             });
         }
     }

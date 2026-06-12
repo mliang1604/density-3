@@ -33,7 +33,7 @@ namespace Density3.EditorTools
         {
             public Material ground, wall, cover, dummy, crit;
             public Material dregLeather, dregBone, dregCloth, dregHair, dregClaw, dregWrap, dregEye;
-            public Material vandalCloth, shankBody, shankAccent, exploderEye;
+            public Material vandalCloth, shankBody, shankAccent, exploderEye, captainCloth;
             public Material gunMetal, gunAccent, gunBlack, gunIvory, gunSteel, gunWood, gunSight;
         }
 
@@ -55,6 +55,7 @@ namespace Density3.EditorTools
             BuildVandalPrefab(mats, enemies.vandal);
             BuildShankPrefab(mats, enemies.shank);
             BuildExploderShankPrefab(mats, enemies.exploder);
+            BuildCaptainPrefab(mats, enemies.captain);
             var hudPrefab = BuildHudPrefab();
             BuildScene(mats, playerPrefab, dregPrefab, hudPrefab);
             BuildTitleScene();
