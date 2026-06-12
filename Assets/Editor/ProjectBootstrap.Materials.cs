@@ -53,6 +53,10 @@ namespace Density3.EditorTools
                 // Deep arc-blue cloak — the Captain wears its shield's element.
                 captainCloth = MatAsset("CaptainCloth", new Color(0.10f, 0.22f, 0.38f), 0f, 0.3f),
 
+                // Zero Hour vault dressing: gunmetal plate and an arc-glow trim.
+                vaultMetal = MatAsset("VaultMetal", new Color(0.13f, 0.14f, 0.17f), 0.75f, 0.55f),
+                vaultGlow = MatAsset("VaultGlow", new Color(0.25f, 0.6f, 1f), 0f, 0.6f, new Color(0.3f, 0.65f, 1f) * 2.2f),
+
                 gunMetal = MatAsset("GunMetal", new Color(0.18f, 0.18f, 0.2f), 0.6f, 0.65f),
                 gunAccent = MatAsset("GunAccent", new Color(0.8f, 0.65f, 0.3f), 0.8f, 0.7f),
                 gunBlack = MatAsset("GunBlack", new Color(0.055f, 0.055f, 0.065f), 0.55f, 0.55f),
